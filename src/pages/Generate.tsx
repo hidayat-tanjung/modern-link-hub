@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,6 +129,47 @@ const styleKeywords: Record<string, string> = {
   watercolor: "watercolor painting, soft colors, artistic",
 };
 
+// ── Quota system: localStorage with 3-day reset ────────────────────
+const QUOTA_KEY = "pixelforge_quota";
+const QUOTA_LIMIT = 5;
+const RESET_MS = 3 * 24 * 60 * 60 * 1000; // 3 days in ms
+
+interface QuotaData {
+  count: number;
+  resetAt: number;
+}
+function getQuota(): QuotaData {
+  try {
+    const raw = localStorage.getItem(QUOTA_KEY);
+    if (!raw) return { count: 0, resetAt: Date.now() + RESET_MS };
+    const data: QuotaData = JSON.parse(raw);
+    if (Date.now() >= data.resetAt) {
+      return { count: 0, resetAt: Date.now() + RESET_MS };
+    }
+    return data;
+  } catch {
+    return { count: 0, resetAt: Date.now() + RESET_MS };
+  }
+}
+
+function consumeQuota(): boolean {
+  const quota = getQuota();
+  if (quota.count >= QUOTA_LIMIT) return false;
+  quota.count += 1;
+  localStorage.setItem(QUOTA_KEY, JSON.stringify(quota));
+  return true;
+}
+
+function getRemainingQuota(): number {
+  const quota = getQuota();
+  return Math.max(0, QUOTA_LIMIT - quota.count);
+}
+
+function getQuotaResetTime(): number {
+  const quota = getQuota();
+  return Math.max(0, quota.resetAt - Date.now());
+}
+
 export default function Generate() {
   const { user } = useAuth();
   const [prompt, setPrompt] = useState("");
@@ -143,15 +184,42 @@ export default function Generate() {
       id: number;
       prompt: string;
       style: string;
+      styleValue: string;
       url: string;
       metadata: ReturnType<typeof generateMetadata>;
     }[]
   >([]);
 
   const isAdmin = user?.role === "admin";
+  const [remaining, setRemaining] = useState(() => (isAdmin ? Infinity : getRemainingQuota()));
+  const [resetIn, setResetIn] = useState(() => getQuotaResetTime());
+
+  // Refresh quota display on mount and every minute
+  const refreshQuota = () => {
+    if (isAdmin) return;
+    setRemaining(getRemainingQuota());
+    setResetIn(getQuotaResetTime());
+  };
+
+  useEffect(() => {
+    refreshQuota();
+    const iv = setInterval(refreshQuota, 60000);
+    return () => clearInterval(iv);
+  }, []);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+
+    // Quota enforcement (skip for admin)
+    if (!isAdmin) {
+      const quota = getQuota();
+      if (quota.count >= QUOTA_LIMIT) {
+        const hoursLeft = Math.ceil((quota.resetAt - Date.now()) / (1000 * 60 * 60));
+        toast.error(`Quota habis! Reset dalam ~${hoursLeft} jam. Admin bisa generate tanpa batas.`);
+        return;
+      }
+    }
+
     setIsGenerating(true);
 
     try {
@@ -170,9 +238,15 @@ export default function Generate() {
         img.src = imageUrl;
       });
 
+      // Success — NOW consume quota (after image loads)
+      if (!isAdmin) {
+        consumeQuota();
+        refreshQuota();
+      }
+
       const metadata = generateMetadata(prompt, selectedStyle);
       setResults((prev) => [
-        { id: Date.now(), prompt, style: styleLabel, url: imageUrl, metadata },
+        { id: Date.now(), prompt, style: styleLabel, styleValue: selectedStyle, url: imageUrl, metadata },
         ...prev,
       ]);
     } catch {
@@ -203,7 +277,7 @@ export default function Generate() {
 
   const handleRegenerate = async (result: (typeof results)[0]) => {
     const newSeed = Math.floor(Math.random() * 100000);
-    const styleKeyword = styleKeywords[Object.keys(styleKeywords).find((k) => stylePresets.find((s) => s.value === k && s.label === result.style)) || "photorealistic"] || "";
+    const styleKeyword = styleKeywords[result.styleValue] || "";
     const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${result.prompt}, ${styleKeyword}`)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
     setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: "" } : r)));
     try {
@@ -239,7 +313,7 @@ export default function Generate() {
                 </Badge>
               ) : (
                 <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
-                  <Clock className="w-3 h-3" /> 3-Day Quota
+                  <Clock className="w-3 h-3" /> {remaining} / {QUOTA_LIMIT} generates · Resets in {Math.ceil(resetIn / (1000 * 60 * 60))}h
                 </Badge>
               )}
             </div>
@@ -291,7 +365,7 @@ export default function Generate() {
 
                 <Button
                   className="w-full gap-2 glow"
-                  disabled={!prompt.trim() || isGenerating}
+                  disabled={!prompt.trim() || isGenerating || (!isAdmin && remaining <= 0)}
                   onClick={handleGenerate}
                 >
                   {isGenerating ? (

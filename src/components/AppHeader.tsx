@@ -6,7 +6,6 @@ import {
   Sparkles,
   LayoutDashboard,
   ImageIcon,
-  Palette,
   Cuboid,
   Menu,
   X,
@@ -16,7 +15,6 @@ import {
   HelpCircle,
   Tag,
   Wand2,
-  ImageMinus,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

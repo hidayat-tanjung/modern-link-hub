@@ -12,6 +12,8 @@ import {
   Shield,
   Unlock,
   Layers,
+  Palette,
+  ImageIcon,
   ArrowRight,
   Clock,
   Users,
