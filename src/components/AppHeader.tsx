@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Tag,
   Wand2,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,6 +32,8 @@ const secondaryLinks = [
   { to: "/promo", label: "Promo", icon: Tag },
   { to: "/faq", label: "FAQ", icon: HelpCircle },
 ];
+
+const adminLink = { to: "/admin", label: "Admin", icon: Shield };
 
 export default function AppHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -139,13 +142,23 @@ export default function AppHeader() {
             </Button>
 
             {isAuthenticated ? (
-              <Link to="/dashboard">
-                <Avatar className="h-7 w-7 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/50 transition-all">
-                  <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
-                    {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
+              <div className="flex items-center gap-1.5">
+                {user?.role === "admin" && (
+                  <Link to={adminLink.to}>
+                    <Button variant="ghost" size="sm" className="rounded-full px-2.5 py-1.5 text-xs gap-1.5 text-amber-500 hover:text-amber-500 hover:bg-amber-500/10">
+                      <adminLink.icon className="w-3 h-3" />
+                      <span className="hidden sm:inline">Admin</span>
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/dashboard">
+                  <Avatar className="h-7 w-7 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/50 transition-all">
+                    <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+                      {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              </div>
             ) : (
               <Link to="/auth">
                 <Button variant="default" size="sm" className="gap-1.5 rounded-full px-3 py-1.5 text-xs h-auto">

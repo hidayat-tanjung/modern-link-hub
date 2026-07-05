@@ -25,6 +25,7 @@ import {
   Clock,
   Crown,
 } from "lucide-react";
+import { WaveDivider } from "@/components/WaveDivider";
 
 const features = [
   {
@@ -198,6 +199,8 @@ export default function Landing() {
           </motion.div>
         </motion.div>
       </section>
+
+      <WaveDivider />
 
       {/* Stats Section */}
       <section className="py-20 relative">
