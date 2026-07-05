@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/AppHeader";
+import { toast } from "sonner";
 import {
   Sparkles,
   Loader2,
@@ -47,126 +48,6 @@ function DropletIcon({ className }: { className?: string }) {
   );
 }
 
-function hslToString(h: number, s: number, l: number) {
-  return `hsl(${h}, ${s}%, ${l}%)`;
-}
-
-function generatePlaceholderImage(prompt: string, style: string, seed: number): string {
-  const canvas = document.createElement("canvas");
-  const size = 512;
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
-
-  // Color schemes per style
-  const schemes: Record<string, { bg1: number[]; bg2: number[]; accent: number[]; glow: number[] }> = {
-    photorealistic: { bg1: [220, 30, 15], bg2: [260, 25, 10], accent: [200, 60, 50], glow: [210, 50, 30] },
-    anime: { bg1: [330, 40, 20], bg2: [280, 35, 12], accent: [340, 80, 65], glow: [320, 60, 35] },
-    "oil-painting": { bg1: [30, 25, 18], bg2: [15, 30, 10], accent: [25, 70, 55], glow: [35, 50, 30] },
-    "3d-render": { bg1: [240, 20, 12], bg2: [200, 25, 8], accent: [220, 70, 55], glow: [230, 50, 25] },
-    "pixel-art": { bg1: [170, 35, 15], bg2: [140, 30, 10], accent: [160, 70, 50], glow: [155, 50, 25] },
-    watercolor: { bg1: [10, 25, 20], bg2: [350, 20, 12], accent: [5, 65, 60], glow: [355, 45, 30] },
-  };
-
-  const scheme = schemes[style] || schemes.photorealistic;
-
-  // Gradient background
-  const grad = ctx.createRadialGradient(size * 0.3, size * 0.3, 50, size * 0.5, size * 0.5, size * 0.8);
-  grad.addColorStop(0, hslToString(scheme.bg1[0], scheme.bg1[1], scheme.bg1[2]));
-  grad.addColorStop(0.6, hslToString(scheme.bg2[0], scheme.bg2[1], scheme.bg2[2]));
-  grad.addColorStop(1, hslToString(scheme.bg2[0], scheme.bg2[1], 5));
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-
-  // Draw decorative blobs
-  const rng = (min: number, max: number) => min + ((seed * 9301 + 49297 * (seed % 10)) % (max - min));
-  const blobCount = 3 + (seed % 5);
-  for (let i = 0; i < blobCount; i++) {
-    const cx = (rng(i * 100, size - 100) + i * 50) % size;
-    const cy = (rng(i * 200, size - 100) + i * 80) % size;
-    const r = 60 + ((seed * (i + 1) * 7) % 120);
-    const alpha = 0.08 + ((seed * (i + 1) * 3) % 10) * 0.02;
-    const blobGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    blobGrad.addColorStop(0, `hsla(${scheme.accent[0] + i * 20}, ${scheme.accent[1]}%, ${scheme.accent[2]}%, ${alpha})`);
-    blobGrad.addColorStop(1, `hsla(${scheme.accent[0] + i * 20}, ${scheme.accent[1]}%, ${scheme.accent[2]}%, 0)`);
-    ctx.fillStyle = blobGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Subtle grid overlay
-  ctx.strokeStyle = `hsla(${scheme.accent[0]}, ${scheme.accent[1]}%, ${scheme.accent[2]}%, 0.04)`;
-  ctx.lineWidth = 1;
-  for (let i = 0; i < size; i += 32) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i, size);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, i);
-    ctx.lineTo(size, i);
-    ctx.stroke();
-  }
-
-  // Glow effect
-  const glowGrad = ctx.createRadialGradient(size * 0.5, size * 0.5, 0, size * 0.5, size * 0.5, size * 0.6);
-  glowGrad.addColorStop(0, `hsla(${scheme.glow[0]}, ${scheme.glow[1]}%, ${scheme.glow[2]}%, 0.15)`);
-  glowGrad.addColorStop(1, `hsla(${scheme.glow[0]}, ${scheme.glow[1]}%, ${scheme.glow[2]}%, 0)`);
-  ctx.fillStyle = glowGrad;
-  ctx.fillRect(0, 0, size, size);
-
-  // Bottom info bar
-  ctx.fillStyle = `hsla(0, 0%, 0%, 0.4)`;
-  ctx.fillRect(0, size - 60, size, 60);
-  const barGrad = ctx.createLinearGradient(0, size - 60, 0, size);
-  barGrad.addColorStop(0, "transparent");
-  barGrad.addColorStop(0.3, `hsla(0, 0%, 0%, 0.5)`);
-  ctx.fillStyle = barGrad;
-  ctx.fillRect(0, size - 60, size, 60);
-
-  // Prompt text on the image
-  ctx.fillStyle = `hsla(0, 0%, 100%, 0.85)`;
-  ctx.font = "14px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  // Word wrap the prompt
-  const words = prompt.split(" ");
-  const maxWidth = size - 40;
-  let lines: string[] = [];
-  let currentLine = "";
-  for (const word of words) {
-    const test = currentLine ? currentLine + " " + word : word;
-    if (ctx.measureText(test).width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = test;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  // Show max 2 lines then truncate
-  if (lines.length > 2) {
-    lines = [lines[0], lines[1] + "..."];
-  }
-
-  const textY = size - 32;
-  lines.forEach((line, i) => {
-    const y = textY + (i - (lines.length - 1) / 2) * 20;
-    ctx.fillText(line, size / 2, y);
-  });
-
-  // Style badge
-  ctx.font = "11px system-ui, sans-serif";
-  ctx.fillStyle = `hsla(${scheme.accent[0]}, ${scheme.accent[1]}%, ${scheme.accent[2]}%, 0.9)`;
-  ctx.textAlign = "right";
-  ctx.fillText(style.toUpperCase(), size - 16, 24);
-
-  return canvas.toDataURL("image/jpeg", 0.92);
-}
-
 const stylePresets = [
   { label: "Photorealistic", value: "photorealistic", icon: ImageIcon },
   { label: "Anime", value: "anime", icon: Palette },
@@ -196,21 +77,43 @@ export default function Generate() {
     if (!prompt.trim()) return;
     setIsGenerating(true);
 
-    // Simulate AI processing time
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const styleLabel = stylePresets.find((s) => s.value === selectedStyle)?.label || "Custom";
+      const seed = Math.floor(Math.random() * 100000);
+      const styleKeywords: Record<string, string> = {
+        photorealistic: "photorealistic, highly detailed, 8k",
+        anime: "anime style, detailed anime art, studio ghibli",
+        "oil-painting": "oil painting style, masterpiece, detailed brushwork",
+        "3d-render": "3d render, octane render, cinematic lighting",
+        "pixel-art": "pixel art, retro game style, 16-bit",
+        watercolor: "watercolor painting, soft colors, artistic",
+      };
+      const styleKeyword = styleKeywords[selectedStyle] || "";
+      const fullPrompt = styleKeyword ? `${prompt}, ${styleKeyword}` : prompt;
 
-    // Generate actual image using Canvas
-    const styleLabel = stylePresets.find((s) => s.value === selectedStyle)?.label || "Custom";
-    const imageUrl = generatePlaceholderImage(prompt, selectedStyle, Date.now());
+      // Use Pollinations.ai for free AI image generation
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
 
-    const newResult = {
-      id: Date.now(),
-      prompt: prompt,
-      style: styleLabel,
-      url: imageUrl,
-    };
-    setResults((prev) => [newResult, ...prev]);
-    setIsGenerating(false);
+      // Preload the image to ensure it's loaded before showing
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = imageUrl;
+      });
+
+      const newResult = {
+        id: Date.now(),
+        prompt: prompt,
+        style: styleLabel,
+        url: imageUrl,
+      };
+      setResults((prev) => [newResult, ...prev]);
+    } catch (error) {
+      toast.error("Failed to generate image. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopyPrompt = (promptText: string, id: number) => {
@@ -226,9 +129,21 @@ export default function Generate() {
     link.click();
   };
 
-  const handleRegenerate = (result: typeof results[0]) => {
-    const newUrl = generatePlaceholderImage(result.prompt, selectedStyle, Date.now() + 1);
-    setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: newUrl } : r)));
+  const handleRegenerate = async (result: typeof results[0]) => {
+    const newSeed = Math.floor(Math.random() * 100000);
+    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(result.prompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
+    setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: "" } : r)));
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = newUrl;
+      });
+      setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: newUrl } : r)));
+    } catch {
+      toast.error("Failed to regenerate. Please try again.");
+    }
   };
 
   return (
@@ -387,12 +302,18 @@ export default function Generate() {
                       >
                         <Card className="glass-card overflow-hidden group">
                           <div className="aspect-square relative overflow-hidden">
-                            <img
-                              src={result.url}
-                              alt={result.prompt}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy"
-                            />
+                            {result.url ? (
+                              <img
+                                src={result.url}
+                                alt={result.prompt}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                              </div>
+                            )}
                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <Button
                                 variant="secondary"
