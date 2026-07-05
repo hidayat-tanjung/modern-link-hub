@@ -82,9 +82,9 @@ export default function Generate() {
       const seed = Math.floor(Math.random() * 100000);
       const styleKeywords: Record<string, string> = {
         photorealistic: "photorealistic, highly detailed, 8k",
-        anime: "anime style, detailed anime art, studio ghibli",
+        anime: "anime style, clear sharp lines, detailed character design, clean linework, vibrant colors, studio ghibli",
         "oil-painting": "oil painting style, masterpiece, detailed brushwork",
-        "3d-render": "3d render, octane render, cinematic lighting",
+        "3d-render": "3d render, octane render, cinematic lighting, highly detailed, sharp focus",
         "pixel-art": "pixel art, retro game style, 16-bit",
         watercolor: "watercolor painting, soft colors, artistic",
       };

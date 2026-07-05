@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppHeader from "@/components/AppHeader";
 import {
   Cuboid,
@@ -12,18 +11,17 @@ import {
   Star,
   Download,
   Heart,
-  Eye,
-  Clock,
-  TrendingUp,
   Search,
   Filter,
   Grid3x3,
   LayoutGrid,
   Loader2,
-  Image as ImageIcon,
-  Lock,
   Unlock,
+  Zap,
+  Shield,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const categories = [
   "All",
@@ -44,9 +42,8 @@ const models = [
     category: "Photorealistic",
     rating: 4.9,
     downloads: "850K",
-    image: null,
     tags: ["Fast", "High Quality", "Popular"],
-    tier: "free",
+    description: "State-of-the-art photorealistic image generation with incredible detail and accuracy.",
   },
   {
     name: "Stable Diffusion XL",
@@ -54,9 +51,8 @@ const models = [
     category: "Illustration",
     rating: 4.8,
     downloads: "2.1M",
-    image: null,
     tags: ["Versatile", "Community", "Open Source"],
-    tier: "free",
+    description: "The most popular open-source model for creative and artistic image generation.",
   },
   {
     name: "Anime V4",
@@ -64,9 +60,8 @@ const models = [
     category: "Anime",
     rating: 4.7,
     downloads: "1.3M",
-    image: null,
     tags: ["Anime", "Manga", "Characters"],
-    tier: "free",
+    description: "Specialized for high-quality anime character art with crisp line work and vibrant colors.",
   },
   {
     name: "Realistic Vision",
@@ -74,9 +69,8 @@ const models = [
     category: "Photorealistic",
     rating: 4.8,
     downloads: "980K",
-    image: null,
     tags: ["Realistic", "Portraits", "Photography"],
-    tier: "free",
+    description: "Ultra-realistic human portraits and photography-style image generation.",
   },
   {
     name: "DreamShaper",
@@ -84,9 +78,8 @@ const models = [
     category: "Illustration",
     rating: 4.6,
     downloads: "750K",
-    image: null,
     tags: ["Artistic", "Creative", "Fantasy"],
-    tier: "premium",
+    description: "Perfect for fantasy art, dreamy landscapes, and creative illustrations.",
   },
   {
     name: "3D Render Pro",
@@ -94,9 +87,8 @@ const models = [
     category: "3D Art",
     rating: 4.5,
     downloads: "420K",
-    image: null,
     tags: ["3D", "Render", "Realistic"],
-    tier: "premium",
+    description: "Professional 3D rendered images with octane render quality and cinematic lighting.",
   },
   {
     name: "Pixel Art Generator",
@@ -104,9 +96,8 @@ const models = [
     category: "Pixel Art",
     rating: 4.4,
     downloads: "310K",
-    image: null,
     tags: ["Pixel", "Retro", "Game"],
-    tier: "free",
+    description: "Classic pixel art style for retro game assets and nostalgic designs.",
   },
   {
     name: "Midjourney Style",
@@ -114,9 +105,8 @@ const models = [
     category: "Concept Art",
     rating: 4.9,
     downloads: "1.1M",
-    image: null,
     tags: ["Artistic", "Dreamy", "Cinematic"],
-    tier: "premium",
+    description: "Cinematic concept art with dramatic lighting and epic compositions.",
   },
   {
     name: "Portrait Master",
@@ -124,9 +114,8 @@ const models = [
     category: "Portrait",
     rating: 4.7,
     downloads: "560K",
-    image: null,
     tags: ["Portraits", "Faces", "Realistic"],
-    tier: "free",
+    description: "Master-level portrait generation with perfect facial features and expressions.",
   },
   {
     name: "Landscape Pro",
@@ -134,9 +123,8 @@ const models = [
     category: "Landscape",
     rating: 4.6,
     downloads: "490K",
-    image: null,
     tags: ["Nature", "Scenery", "Epic"],
-    tier: "free",
+    description: "Breathtaking nature landscapes with stunning natural lighting and atmosphere.",
   },
   {
     name: "Anime XL",
@@ -144,9 +132,8 @@ const models = [
     category: "Anime",
     rating: 4.8,
     downloads: "890K",
-    image: null,
     tags: ["Anime", "HD", "Characters"],
-    tier: "premium",
+    description: "High-definition anime characters with detailed art style and expressive features.",
   },
   {
     name: "Cyberpunk City",
@@ -154,9 +141,8 @@ const models = [
     category: "Concept Art",
     rating: 4.5,
     downloads: "340K",
-    image: null,
     tags: ["Cyberpunk", "Sci-Fi", "Urban"],
-    tier: "free",
+    description: "Neon-lit cyberpunk cityscapes with futuristic technology and atmosphere.",
   },
 ];
 
@@ -167,6 +153,7 @@ export default function Models() {
   const [selectedModel, setSelectedModel] = useState<typeof models[0] | null>(null);
   const [generatePrompt, setGeneratePrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
   const filteredModels = models.filter((m) => {
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -176,10 +163,41 @@ export default function Models() {
   });
 
   const handleGenerate = async () => {
-    if (!generatePrompt.trim()) return;
+    if (!generatePrompt.trim() || !selectedModel) return;
     setIsGenerating(true);
-    await new Promise((r) => setTimeout(r, 2500));
-    setIsGenerating(false);
+    setGeneratedImage(null);
+
+    try {
+      const seed = Math.floor(Math.random() * 100000);
+      const styleKeywords: Record<string, string> = {
+        "Photorealistic": "photorealistic, highly detailed, 8k",
+        "Anime": "anime style, detailed anime art, studio ghibli",
+        "Illustration": "digital illustration, detailed art",
+        "3D Art": "3d render, octane render, cinematic lighting",
+        "Pixel Art": "pixel art, retro game style, 16-bit",
+        "Concept Art": "cinematic concept art, epic composition",
+        "Portrait": "portrait photography, detailed face",
+        "Landscape": "landscape photography, stunning scenery",
+      };
+      const styleKeyword = styleKeywords[selectedModel.category] || "";
+      const fullPrompt = styleKeyword ? `${generatePrompt}, ${styleKeyword}` : generatePrompt;
+
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = imageUrl;
+      });
+
+      setGeneratedImage(imageUrl);
+      toast.success("Image generated successfully!");
+    } catch {
+      toast.error("Failed to generate image. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -197,8 +215,19 @@ export default function Models() {
               AI <span className="text-gradient">Models</span>
             </h1>
             <p className="text-muted-foreground">
-              Browse and use cutting-edge AI models for image generation.
+              Browse and use cutting-edge AI models for image generation. All models are free, unlimited, and ready for commercial use.
             </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Badge variant="secondary" className="gap-1">
+                <Unlock className="w-3 h-3 text-green-500" /> All Free
+              </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <Zap className="w-3 h-3 text-amber-500" /> Unlimited
+              </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <Shield className="w-3 h-3 text-blue-500" /> Commercial Use OK
+              </Badge>
+            </div>
           </motion.div>
 
           <div className="grid lg:grid-cols-4 gap-8">
@@ -244,7 +273,7 @@ export default function Models() {
               {/* Stats */}
               <Card className="glass-card p-4">
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-primary" /> Quick Stats
+                  <Sparkles className="w-4 h-4 text-primary" /> All Models
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
@@ -252,12 +281,12 @@ export default function Models() {
                     <span className="font-semibold">{models.length}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Free Models</span>
-                    <span className="font-semibold text-green-500">{models.filter((m) => m.tier === "free").length}</span>
+                    <span className="text-muted-foreground">Free Access</span>
+                    <span className="font-semibold text-green-500">{models.length}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Premium</span>
-                    <span className="font-semibold text-amber-500">{models.filter((m) => m.tier === "premium").length}</span>
+                    <span className="text-muted-foreground">Limits</span>
+                    <span className="font-semibold text-green-500">None</span>
                   </div>
                 </div>
               </Card>
@@ -272,7 +301,7 @@ export default function Models() {
               {/* View toggle */}
               <div className="flex items-center justify-between mb-6">
                 <p className="text-sm text-muted-foreground">
-                  Showing <span className="font-semibold text-foreground">{filteredModels.length}</span> models
+                  Showing <span className="font-semibold text-foreground">{filteredModels.length}</span> models — <span className="text-green-500 font-medium">All Free & Unlimited</span>
                 </p>
                 <div className="flex gap-1">
                   <Button
@@ -310,7 +339,7 @@ export default function Models() {
                           className={`glass-card overflow-hidden group cursor-pointer hover:border-primary/30 transition-all duration-300 ${
                             selectedModel?.name === model.name ? "ring-2 ring-primary" : ""
                           }`}
-                          onClick={() => setSelectedModel(model)}
+                          onClick={() => { setSelectedModel(model); setGeneratedImage(null); }}
                         >
                           {/* Model preview */}
                           <div className="aspect-[4/3] bg-gradient-to-br from-studio-1/10 to-studio-4/10 flex items-center justify-center relative">
@@ -319,14 +348,10 @@ export default function Models() {
                               <p className="text-xs text-muted-foreground">{model.category}</p>
                             </div>
                             <Badge
-                              variant={model.tier === "free" ? "secondary" : "default"}
-                              className="absolute top-2 right-2 text-[10px]"
+                              variant="secondary"
+                              className="absolute top-2 right-2 text-[10px] bg-green-500/10 text-green-500 border-green-500/30"
                             >
-                              {model.tier === "free" ? (
-                                <><Unlock className="w-2.5 h-2.5 mr-1" /> Free</>
-                              ) : (
-                                <><Lock className="w-2.5 h-2.5 mr-1" /> Premium</>
-                              )}
+                              <Unlock className="w-2.5 h-2.5 mr-1" /> Free
                             </Badge>
                             <div className="absolute inset-0 bg-background/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <Button variant="secondary" size="icon" className="w-9 h-9">
@@ -375,7 +400,7 @@ export default function Models() {
                         className={`glass-card p-4 flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all ${
                           selectedModel?.name === model.name ? "ring-2 ring-primary" : ""
                         }`}
-                        onClick={() => setSelectedModel(model)}
+                        onClick={() => { setSelectedModel(model); setGeneratedImage(null); }}
                       >
                         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-studio-1/20 to-studio-4/20 flex items-center justify-center shrink-0">
                           <Cuboid className="w-6 h-6 text-primary/50" />
@@ -383,11 +408,8 @@ export default function Models() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-sm">{model.name}</h3>
-                            <Badge
-                              variant={model.tier === "free" ? "outline" : "secondary"}
-                              className="text-[10px]"
-                            >
-                              {model.tier}
+                            <Badge variant="secondary" className="text-[10px] bg-green-500/10 text-green-500">
+                              Free
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground">{model.creator} · {model.category}</p>
@@ -431,16 +453,17 @@ export default function Models() {
                       <p className="text-sm text-muted-foreground">
                         by {selectedModel.creator} · {selectedModel.category} · ★ {selectedModel.rating}
                       </p>
+                      <p className="text-xs text-muted-foreground mt-1">{selectedModel.description}</p>
                     </div>
                     <div className="flex gap-2 sm:ml-auto">
-                      <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                        <Heart className="w-3.5 h-3.5" /> Favorite
-                      </Button>
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-500 gap-1">
+                        <Check className="w-3 h-3" /> Free & Unlimited
+                      </Badge>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="gap-1.5 text-xs"
-                        onClick={() => setSelectedModel(null)}
+                        onClick={() => { setSelectedModel(null); setGeneratedImage(null); }}
                       >
                         Close
                       </Button>
@@ -468,6 +491,23 @@ export default function Models() {
                       )}
                     </Button>
                   </div>
+
+                  {/* Generated Image Display */}
+                  {generatedImage && (
+                    <div className="mt-6">
+                      <p className="text-sm font-medium mb-3">Generated Image:</p>
+                      <div className="relative rounded-xl overflow-hidden">
+                        <img
+                          src={generatedImage}
+                          alt={generatePrompt}
+                          className="w-full max-h-[500px] object-contain bg-black/10 rounded-xl"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        1024x1024 · Commercial use OK · Suitable for Shutterstock & Adobe Stock
+                      </p>
+                    </div>
+                  )}
                 </Card>
               </motion.div>
             )}
