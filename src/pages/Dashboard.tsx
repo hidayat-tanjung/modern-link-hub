@@ -73,7 +73,6 @@ const quickActions = [
 
 function timeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds <= 0) return "just now";
   if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -167,7 +166,7 @@ export default function Dashboard() {
                   </div>
                 ) : recentGenerations && recentGenerations.length > 0 ? (
                   <div className="divide-y divide-border/50">
-                    {recentGenerations.map((item) => (
+                    {recentGenerations.map((item: { _id: string; _creationTime: number; prompt: string; style: string }) => (
                       <div
                         key={item._id}
                         className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer"
