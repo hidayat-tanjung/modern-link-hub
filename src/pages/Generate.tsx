@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/AppHeader";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -18,8 +19,62 @@ import {
   Copy,
   Check,
   Sliders,
+  Shield,
+  FileText,
+  Tag,
+  Clock,
+  Crown,
 } from "lucide-react";
 
+// ── Auto-generate metadata from prompt ──────────────────────────────
+function generateMetadata(prompt: string, style: string) {
+  const p = prompt.toLowerCase();
+
+  // Category detection
+  const categories: string[] = [];
+  if (/portrait|face|person|woman|man|girl|boy|selfie|headshot/i.test(p)) categories.push("Portrait");
+  if (/landscape|mountain|forest|ocean|sea|river|lake|sunset|sunrise|sky/i.test(p)) categories.push("Landscape");
+  if (/animal|cat|dog|bird|horse|tiger|lion|wolf|fish|dragon/i.test(p)) categories.push("Animals");
+  if (/city|street|building|architecture|house|skyscraper|urban/i.test(p)) categories.push("Architecture");
+  if (/flower|plant|tree|garden|leaf|nature|botanical/i.test(p)) categories.push("Nature");
+  if (/car|vehicle|plane|ship|train|motorcycle|truck/i.test(p)) categories.push("Transportation");
+  if (/food|pizza|sushi|cake|coffee|fruit|dish|meal|cook/i.test(p)) categories.push("Food & Drink");
+  if (/space|galaxy|star|planet|moon|nebula|universe/i.test(p)) categories.push("Science & Space");
+  if (/fantasy|dragon|magic|sword|castle|fairy|elf|monster/i.test(p)) categories.push("Fantasy");
+  if (/abstract|pattern|geometric|minimalist|design|logo/i.test(p)) categories.push("Abstract");
+  if (/anime|manga|chibi|otaku|kawaii/i.test(p) || style === "anime") categories.push("Anime & Manga");
+  if (/product|bottle|box|package|brand/i.test(p)) categories.push("Product");
+  if (/fashion|dress|clothing|shoes|accessor|model|style/i.test(p)) categories.push("Fashion");
+  if (categories.length === 0) categories.push("General");
+
+  // Shutterstock-style description
+  const styleDesc =
+    style === "photorealistic" ? "Photorealistic" :
+    style === "anime" ? "Anime style illustration" :
+    style === "oil-painting" ? "Oil painting artwork" :
+    style === "3d-render" ? "3D rendered image" :
+    style === "pixel-art" ? "Pixel art design" :
+    style === "watercolor" ? "Watercolor painting" :
+    "AI-generated artwork";
+
+  const description = `${styleDesc}: ${prompt}. High-quality, detailed digital image suitable for commercial use, print, and web applications.`;
+
+  // Shutterstock categories (top-level)
+  const stockCategories = [
+    "Creative > Digital Arts",
+    "Creative > Illustration",
+  ];
+  if (categories.includes("Portrait")) stockCategories.unshift("People > Portraits");
+  if (categories.includes("Landscape")) stockCategories.unshift("Nature > Landscapes");
+  if (categories.includes("Animals")) stockCategories.unshift("Animals > Wildlife");
+  if (categories.includes("Architecture")) stockCategories.unshift("Architecture > Buildings");
+  if (categories.includes("Fantasy")) stockCategories.unshift("Creative > Fantasy");
+  if (categories.includes("Abstract")) stockCategories.unshift("Creative > Abstract");
+
+  return { categories, description, stockCategories: stockCategories.slice(0, 3) };
+}
+
+// ── Style presets ──────────────────────────────────────────────────
 function CuboidIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,13 +120,35 @@ const samplePrompts = [
   "Cute pixel art character with sword and shield",
 ];
 
+const styleKeywords: Record<string, string> = {
+  photorealistic: "photorealistic, highly detailed, 8k",
+  anime: "anime style, clear sharp lines, detailed character design, clean linework, vibrant colors, studio ghibli",
+  "oil-painting": "oil painting style, masterpiece, detailed brushwork",
+  "3d-render": "3d render, octane render, cinematic lighting, highly detailed, sharp focus",
+  "pixel-art": "pixel art, retro game style, 16-bit",
+  watercolor: "watercolor painting, soft colors, artistic",
+};
+
 export default function Generate() {
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("photorealistic");
   const [isGenerating, setIsGenerating] = useState(false);
   const [negativePrompt, setNegativePrompt] = useState(false);
+  const [negativeText, setNegativeText] = useState("");
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [results, setResults] = useState<{ id: number; prompt: string; style: string; url: string }[]>([]);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [results, setResults] = useState<
+    {
+      id: number;
+      prompt: string;
+      style: string;
+      url: string;
+      metadata: ReturnType<typeof generateMetadata>;
+    }[]
+  >([]);
+
+  const isAdmin = user?.role === "admin";
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -80,21 +157,12 @@ export default function Generate() {
     try {
       const styleLabel = stylePresets.find((s) => s.value === selectedStyle)?.label || "Custom";
       const seed = Math.floor(Math.random() * 100000);
-      const styleKeywords: Record<string, string> = {
-        photorealistic: "photorealistic, highly detailed, 8k",
-        anime: "anime style, clear sharp lines, detailed character design, clean linework, vibrant colors, studio ghibli",
-        "oil-painting": "oil painting style, masterpiece, detailed brushwork",
-        "3d-render": "3d render, octane render, cinematic lighting, highly detailed, sharp focus",
-        "pixel-art": "pixel art, retro game style, 16-bit",
-        watercolor: "watercolor painting, soft colors, artistic",
-      };
       const styleKeyword = styleKeywords[selectedStyle] || "";
-      const fullPrompt = styleKeyword ? `${prompt}, ${styleKeyword}` : prompt;
+      const negPart = negativeText.trim() ? `, avoid: ${negativeText}` : "";
+      const fullPrompt = `${prompt}, ${styleKeyword}${negPart}`;
 
-      // Use Pollinations.ai for free AI image generation
       const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
 
-      // Preload the image to ensure it's loaded before showing
       await new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve();
@@ -102,36 +170,41 @@ export default function Generate() {
         img.src = imageUrl;
       });
 
-      const newResult = {
-        id: Date.now(),
-        prompt: prompt,
-        style: styleLabel,
-        url: imageUrl,
-      };
-      setResults((prev) => [newResult, ...prev]);
-    } catch (error) {
+      const metadata = generateMetadata(prompt, selectedStyle);
+      setResults((prev) => [
+        { id: Date.now(), prompt, style: styleLabel, url: imageUrl, metadata },
+        ...prev,
+      ]);
+    } catch {
       toast.error("Failed to generate image. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleCopyPrompt = (promptText: string, id: number) => {
-    navigator.clipboard.writeText(promptText);
+  const handleCopyPrompt = (text: string, id: number) => {
+    navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleDownload = (dataUrl: string, filename: string) => {
+  const handleCopyField = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleDownload = (url: string, filename: string) => {
     const link = document.createElement("a");
     link.download = `pixelforge-${filename.toLowerCase().replace(/\s+/g, "-")}.jpg`;
-    link.href = dataUrl;
+    link.href = url;
     link.click();
   };
 
-  const handleRegenerate = async (result: typeof results[0]) => {
+  const handleRegenerate = async (result: (typeof results)[0]) => {
     const newSeed = Math.floor(Math.random() * 100000);
-    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(result.prompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
+    const styleKeyword = styleKeywords[Object.keys(styleKeywords).find((k) => stylePresets.find((s) => s.value === k && s.label === result.style)) || "photorealistic"] || "";
+    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${result.prompt}, ${styleKeyword}`)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
     setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: "" } : r)));
     try {
       await new Promise<void>((resolve, reject) => {
@@ -149,16 +222,27 @@ export default function Generate() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <main className="pt-24 pb-16">
+      <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-3xl font-bold mb-2">
-              AI <span className="text-gradient">Image Generation</span>
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold">
+                AI <span className="text-gradient">Image Generation</span>
+              </h1>
+              {isAdmin ? (
+                <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-500 border-amber-500/20">
+                  <Crown className="w-3 h-3" /> Admin
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
+                  <Clock className="w-3 h-3" /> 3-Day Quota
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Describe what you want to see, and let AI bring it to life.
             </p>
@@ -169,17 +253,18 @@ export default function Generate() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-1 space-y-6"
+              className="lg:col-span-1 space-y-5"
             >
               <Card className="glass-card p-5 space-y-4">
-                <Label className="text-sm font-semibold">Prompt</Label>
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" /> Prompt
+                </Label>
                 <div className="relative">
-                  <Sparkles className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <textarea
                     placeholder="A majestic dragon flying over a medieval castle..."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring pl-9 resize-none"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
                   />
                 </div>
 
@@ -197,7 +282,9 @@ export default function Generate() {
 
                 {negativePrompt && (
                   <Input
-                    placeholder="Things to avoid in the image..."
+                    placeholder="Things to avoid..."
+                    value={negativeText}
+                    onChange={(e) => setNegativeText(e.target.value)}
                     className="text-sm"
                   />
                 )}
@@ -222,7 +309,9 @@ export default function Generate() {
               </Card>
 
               <Card className="glass-card p-5 space-y-4">
-                <Label className="text-sm font-semibold">Style</Label>
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-primary" /> Style
+                </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {stylePresets.map((style) => {
                     const Icon = style.icon;
@@ -280,40 +369,44 @@ export default function Generate() {
                   </p>
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-8">
                   {isGenerating && results.length === 0 && (
-                    <div className="sm:col-span-2 flex items-center justify-center py-12">
+                    <div className="flex items-center justify-center py-12">
                       <div className="text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-studio-1 to-studio-4 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-studio-1 to-studio-3 flex items-center justify-center mx-auto mb-4 animate-pulse">
                           <Loader2 className="w-8 h-8 text-white animate-spin" />
                         </div>
                         <p className="text-sm text-muted-foreground">Creating your image...</p>
                       </div>
                     </div>
                   )}
+
                   <AnimatePresence>
                     {results.map((result, i) => (
                       <motion.div
                         key={result.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         layout
                       >
                         <Card className="glass-card overflow-hidden group">
-                          <div className="aspect-square relative overflow-hidden">
+                          {/* Image */}
+                          <div className="aspect-square relative overflow-hidden bg-secondary/20">
                             {result.url ? (
                               <img
                                 src={result.url}
                                 alt={result.prompt}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                                 loading="lazy"
                               />
                             ) : (
-                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                              <div className="w-full h-full flex items-center justify-center">
                                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
                               </div>
                             )}
+
+                            {/* Hover actions */}
                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <Button
                                 variant="secondary"
@@ -344,12 +437,72 @@ export default function Generate() {
                                 )}
                               </Button>
                             </div>
+
+                            {/* Resolution badge */}
+                            <div className="absolute top-3 left-3">
+                              <Badge variant="secondary" className="text-[10px] bg-black/50 backdrop-blur-sm border-white/10 text-white/90">
+                                1024×1024 · Stock Ready
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="p-4">
-                            <p className="text-sm font-medium truncate">{result.prompt}</p>
-                            <Badge variant="secondary" className="mt-2 text-xs">
-                              {result.style}
-                            </Badge>
+
+                          {/* Metadata Panel */}
+                          <div className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium truncate flex-1">{result.prompt}</p>
+                              <Badge variant="secondary" className="text-[10px] ml-2 shrink-0">
+                                {result.style}
+                              </Badge>
+                            </div>
+
+                            {/* Auto-generated metadata */}
+                            <div className="space-y-2.5 pt-2 border-t border-border/30">
+                              {/* Description */}
+                              <div className="flex items-start gap-2">
+                                <FileText className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Auto Description</p>
+                                  <p className="text-xs text-foreground/80 leading-relaxed">{result.metadata.description}</p>
+                                  <button
+                                    onClick={() => handleCopyField(result.metadata.description, `desc-${result.id}`)}
+                                    className="text-[10px] text-primary hover:text-primary/80 mt-1 flex items-center gap-1"
+                                  >
+                                    {copiedField === `desc-${result.id}` ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
+                                    {copiedField === `desc-${result.id}` ? "Copied" : "Copy description"}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Categories */}
+                              <div className="flex items-start gap-2">
+                                <Tag className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Categories</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {result.metadata.categories.map((cat) => (
+                                      <Badge key={cat} variant="outline" className="text-[10px] px-1.5 py-0">
+                                        {cat}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Stock platforms */}
+                              <div className="flex items-start gap-2">
+                                <Shield className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Stock Platforms</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {result.metadata.stockCategories.map((cat) => (
+                                      <Badge key={cat} variant="outline" className="text-[10px] px-1.5 py-0 bg-green-500/5 text-green-500 border-green-500/20">
+                                        {cat}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </Card>
                       </motion.div>

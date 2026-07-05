@@ -1,80 +1,77 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import AppHeader from "@/components/AppHeader";
 import {
   Sparkles,
   Check,
   Zap,
-  Gift,
   Crown,
   Shield,
   Unlock,
-  Infinity,
-  Palette,
-  ImageIcon,
   Layers,
-  Star,
   ArrowRight,
+  Clock,
+  Users,
 } from "lucide-react";
 
 const features = [
   {
     icon: Sparkles,
-    title: "Unlimited AI Generation",
-    description: "Generate unlimited images from text prompts using Flux AI model. No limits, no restrictions.",
-    gradient: "from-violet-500 to-purple-500",
+    title: "AI Image Generation",
+    description: "Generate stunning images from text prompts using Flux AI model. High quality, detailed output.",
+    gradient: "from-blue-500 to-indigo-500",
   },
   {
     icon: Palette,
     title: "6 Style Presets",
     description: "Photorealistic, Anime, Oil Painting, 3D Render, Pixel Art, Watercolor — all free to use.",
-    gradient: "from-pink-500 to-rose-500",
+    gradient: "from-cyan-500 to-blue-500",
   },
   {
     icon: ImageIcon,
     title: "8 Professional Tools",
     description: "Remove BG, Watermark, Smart Crop, Convert & Compress, and more — all tools included.",
-    gradient: "from-blue-500 to-cyan-500",
+    gradient: "from-indigo-500 to-violet-500",
   },
   {
     icon: Layers,
     title: "Studio Editor",
     description: "Full-featured canvas editor with brushes, text, shapes, filters, and layers.",
-    gradient: "from-green-500 to-emerald-500",
-  },
-  {
-    icon: Crown,
-    title: "12 AI Models",
-    description: "Access all models including Flux Pro, Stable Diffusion XL, Anime V4, and more.",
-    gradient: "from-amber-500 to-orange-500",
+    gradient: "from-violet-500 to-purple-500",
   },
   {
     icon: Shield,
     title: "Commercial Use OK",
     description: "All generated images are suitable for Shutterstock, Adobe Stock, and other stock platforms.",
-    gradient: "from-indigo-500 to-blue-500",
+    gradient: "from-emerald-500 to-cyan-500",
+  },
+  {
+    icon: Users,
+    title: "Admin Full Access",
+    description: "Admin accounts get unlimited generations with no quota restrictions. Contact admin for access.",
+    gradient: "from-amber-500 to-orange-500",
   },
 ];
 
 const faqItems = [
   {
-    q: "Apakah semua fitur benar-benar gratis?",
-    a: "Ya! Semua fitur PixelForge 100% gratis. Tidak ada paket premium, tidak ada kredit, tidak ada batasan. Generate sebanyak yang kamu mau.",
+    q: "Bagaimana sistem quota bekerja?",
+    a: "Pengguna free mendapat quota yang reset setiap 3 hari. Setelah quota habis, kamu perlu menunggu reset berikutnya untuk generate lagi. Admin mendapat akses penuh tanpa batas.",
   },
   {
     q: "Apakah gambar bisa di-upload ke Shutterstock/Adobe Stock?",
-    a: "Ya! Semua gambar yang dihasilkan menggunakan AI models kami berkualitas tinggi (1024x1024+) dan suitable untuk komersial use. Kamu bisa upload ke Shutterstock, Adobe Stock, dan platform stock lainnya.",
+    a: "Ya! Semua gambar yang dihasilkan menggunakan AI models kami berkualitas tinggi (1024x1024+) dan siap untuk komersial use. Kamu bisa upload ke Shutterstock, Adobe Stock, dan platform stock lainnya.",
   },
   {
-    q: "Apakah ada batasan generate?",
-    a: "Tidak ada batasan! Generate gambar sebanyak yang kamu mau, 24/7, tanpa limit.",
+    q: "Bagaimana cara mendapatkan akses admin?",
+    a: "Hubungi administrator untuk mendapatkan akses admin. Admin mendapat quota unlimited dan bisa generate tanpa batasan.",
   },
   {
-    q: "Model mana yang terbaik untuk anime?",
-    a: "Untuk karakter anime, gunakan model 'Anime V4' atau 'Anime XL'. Pilih style 'Anime' di Generate page untuk hasil terbaik.",
+    q: "Apakah ada deskripsi dan kategori otomatis?",
+    a: "Ya! Setiap gambar yang di-generate akan otomatis mendapat deskripsi dan kategori yang sesuai, siap untuk di-upload ke stock platforms.",
   },
 ];
 
@@ -85,34 +82,34 @@ export default function Promo() {
 
       {/* Hero */}
       <section className="pt-28 pb-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 via-studio-1/5 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-studio-1/5 via-studio-2/5 to-transparent" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Badge variant="outline" className="mb-4 border-green-500/30 text-green-500 bg-green-500/5">
-              <Unlock className="w-3 h-3 mr-1" /> 100% Free Forever
+            <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
+              <Unlock className="w-3 h-3 mr-1" /> Free Tier Available
             </Badge>
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-              Semua Fitur{" "}
-              <span className="text-gradient">Gratis</span>
+              AI Image Generation{" "}
+              <span className="text-gradient">Free</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Tidak ada paket premium, tidak ada kredit, tidak ada batasan.
-              Semua AI models, tools, dan fitur tersedia gratis untuk semua pengguna.
+              Generate gambar AI berkualitas tinggi dengan quota gratis.
+              Reset tiap 3 hari. Admin mendapat akses unlimited.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {[
-                { icon: Unlock, text: "All Free" },
-                { icon: Infinity, text: "Unlimited" },
+                { icon: Clock, text: "3-Day Reset" },
                 { icon: Shield, text: "Commercial Use" },
-                { icon: Zap, text: "No Limits" },
+                { icon: Sparkles, text: "Auto Description" },
+                { icon: Crown, text: "Admin Unlimited" },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
                   <Badge key={item.text} variant="secondary" className="gap-1.5 px-4 py-2 text-sm">
-                    <Icon className="w-4 h-4 text-green-500" /> {item.text}
+                    <Icon className="w-4 h-4 text-primary" /> {item.text}
                   </Badge>
                 );
               })}
@@ -121,7 +118,7 @@ export default function Promo() {
               <Link to="/generate">
                 <Button size="lg" className="gap-2 text-base px-10 h-12 glow">
                   <Sparkles className="w-5 h-5" />
-                  Start Generating Free
+                  Start Generating
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -146,14 +143,14 @@ export default function Promo() {
             className="text-center mb-12"
           >
             <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
-              <Gift className="w-3 h-3 mr-1" /> Free Features
+              <Zap className="w-3 h-3 mr-1" /> Features
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Yang Kamu Dapatkan{" "}
               <span className="text-gradient">Secara Gratis</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Semua fitur di bawah ini tersedia tanpa biaya, tanpa batasan, untuk semua pengguna.
+              Semua fitur di bawah ini tersedia untuk semua pengguna free dengan quota 3-hari.
             </p>
           </motion.div>
 
@@ -178,11 +175,6 @@ export default function Promo() {
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {feature.description}
                     </p>
-                    <div className="mt-4">
-                      <Badge variant="secondary" className="bg-green-500/10 text-green-500 gap-1">
-                        <Check className="w-3 h-3" /> Free Forever
-                      </Badge>
-                    </div>
                   </Card>
                 </motion.div>
               );
@@ -202,13 +194,13 @@ export default function Promo() {
                 </Badge>
                 <h2 className="text-2xl font-bold mb-4">Ready for Stock Platforms</h2>
                 <p className="text-muted-foreground mb-6">
-                  Semua gambar yang dihasilkan PixelForge berkualitas tinggi dan siap untuk di-upload ke platform stock photography.
+                  Semua gambar berkualitas tinggi dan siap untuk di-upload ke platform stock photography.
                 </p>
                 <div className="space-y-3">
                   {[
                     "Resolusi 1024x1024+ (high quality)",
                     "Format JPEG untuk kompatibilitas maksimal",
-                    "Tidak ada watermark di gambar",
+                    "Auto-generated description & kategori",
                     "Lisensi komersial untuk semua pengguna",
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
@@ -269,40 +261,18 @@ export default function Promo() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="pb-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <Card className="glass-card p-10 border-primary/20 bg-gradient-to-br from-studio-1/5 via-studio-4/5 to-transparent">
-            <Sparkles className="w-12 h-12 text-primary/60 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Siap Mulai?</h2>
-            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Mulai generate gambar AI sekarang — gratis, tanpa batasan, untuk semua kebutuhanmu.
-            </p>
-            <Link to="/generate">
-              <Button size="lg" className="gap-2 text-base px-10 h-12 glow">
-                <Sparkles className="w-5 h-5" />
-                Generate Sekarang
-              </Button>
-            </Link>
-          </Card>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border/50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-studio-1 to-studio-4 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-studio-1 to-studio-3 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
             <span className="font-semibold text-sm">PixelForge</span>
           </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
-            <Link to="/promo" className="hover:text-foreground transition-colors">Promo</Link>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Built with ❤️ — Powered by cutting-edge AI
+          </p>
         </div>
       </footer>
     </div>

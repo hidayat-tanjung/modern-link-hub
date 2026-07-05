@@ -22,7 +22,8 @@ import {
   Shield,
   Layers,
   Paintbrush,
-  Sliders,
+  Clock,
+  Crown,
 } from "lucide-react";
 
 const features = [
@@ -45,9 +46,9 @@ const features = [
     gradient: "from-studio-3 to-studio-4",
   },
   {
-    icon: Brush,
-    title: "Watermark & Branding",
-    description: "Add custom watermarks, logos, and text overlays to protect and brand your images in seconds.",
+    icon: Shield,
+    title: "Auto Description & Categories",
+    description: "Every generated image gets automatic descriptions and categories — ready for Shutterstock & Adobe Stock.",
     gradient: "from-studio-4 to-studio-5",
   },
   {
@@ -79,7 +80,7 @@ const stats = [
   { label: "Images Generated", value: "2.4M+", icon: Zap },
   { label: "Active Users", value: "50K+", icon: Users },
   { label: "Tools Available", value: "25+", icon: Layers },
-  { label: "Uptime", value: "99.9%", icon: Shield },
+  { label: "Stock Platforms", value: "4+", icon: Shield },
 ];
 
 export default function Landing() {
@@ -326,6 +327,62 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Quota Info Section */}
+      <section className="py-20 relative">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <Card className="glass-card p-8 border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
+                  <Clock className="w-3 h-3 mr-1" /> Free Tier
+                </Badge>
+                <h2 className="text-2xl font-bold mb-4">Generate for Free</h2>
+                <p className="text-muted-foreground mb-6">
+                  Get started with our free tier. Generate images with quota that resets every 3 days.
+                </p>
+                <div className="space-y-3">
+                  {[
+                    "Free tier with 3-day reset quota",
+                    "All styles available (Anime, Photorealistic, etc.)",
+                    "Auto description & categories included",
+                    "Commercial use ready (Shutterstock, Adobe Stock)",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="glass-card p-4 text-center">
+                    <Clock className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <p className="font-semibold text-sm">3-Day Reset</p>
+                    <p className="text-xs text-muted-foreground mt-1">Quota refreshes automatically</p>
+                  </Card>
+                  <Card className="glass-card p-4 text-center">
+                    <Crown className="w-6 h-6 mx-auto mb-2 text-amber-500" />
+                    <p className="font-semibold text-sm">Admin Unlimited</p>
+                    <p className="text-xs text-muted-foreground mt-1">Full access, no limits</p>
+                  </Card>
+                  <Card className="glass-card p-4 text-center">
+                    <Shield className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                    <p className="font-semibold text-sm">Commercial Use</p>
+                    <p className="text-xs text-muted-foreground mt-1">Ready for stock platforms</p>
+                  </Card>
+                  <Card className="glass-card p-4 text-center">
+                    <Sparkles className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                    <p className="font-semibold text-sm">AI Quality</p>
+                    <p className="text-xs text-muted-foreground mt-1">1024x1024 Flux model</p>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-32 relative">
         <div className="absolute inset-0 bg-gradient-to-t from-studio-1/10 via-studio-4/5 to-transparent" />
@@ -362,7 +419,7 @@ export default function Landing() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-muted-foreground">
-              {["No credit card", "Free tier included", "Unlimited generations", "All tools free"].map(
+              {["No credit card", "Free tier included", "3-day quota reset", "Admin unlimited"].map(
                 (item) => (
                   <span key={item} className="flex items-center gap-1.5">
                     <Check className="w-4 h-4 text-primary" />
@@ -379,7 +436,7 @@ export default function Landing() {
       <footer className="border-t border-border/50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-studio-1 to-studio-4 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-studio-1 to-studio-3 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
             <span className="font-semibold text-sm">PixelForge</span>
