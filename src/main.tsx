@@ -5,6 +5,7 @@ import { InstrumentationProvider } from "@/instrumentation.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import { StrictMode, useEffect, lazy, Suspense } from "react";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
@@ -70,11 +71,11 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/generate" element={<Generate />} />
-              <Route path="/tools" element={<Tools />} />
-              <Route path="/studio" element={<Studio />} />
-              <Route path="/models" element={<Models />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
+              <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
+              <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
+              <Route path="/models" element={<ProtectedRoute><Models /></ProtectedRoute>} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/promo" element={<Promo />} />
               <Route path="*" element={<NotFound />} />

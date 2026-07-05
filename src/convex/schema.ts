@@ -32,12 +32,18 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
-    // add other tables here
-
-    // tableName: defineTable({
-    //   ...
-    //   // table fields
-    // }).index("by_field", ["field"])
+    generations: defineTable({
+      userId: v.optional(v.id("users")),
+      prompt: v.string(),
+      style: v.string(),
+      styleValue: v.string(),
+      imageUrl: v.string(),
+      metadata: v.object({
+        categories: v.array(v.string()),
+        description: v.string(),
+        stockCategories: v.array(v.string()),
+      }),
+    }).index("by_user", ["userId"]).index("by_user_created", ["userId", "_creationTime"])
   },
   {
     schemaValidation: false,

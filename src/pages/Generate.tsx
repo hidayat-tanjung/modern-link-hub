@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -172,6 +174,7 @@ function getQuotaResetTime(): number {
 
 export default function Generate() {
   const { user } = useAuth();
+  const recordGeneration = useMutation(api.generations.record);
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("photorealistic");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -245,6 +248,16 @@ export default function Generate() {
       }
 
       const metadata = generateMetadata(prompt, selectedStyle);
+      
+      // Persist to Convex (fire-and-forget)
+      recordGeneration({
+        prompt,
+        style: styleLabel,
+        styleValue: selectedStyle,
+        imageUrl,
+        metadata,
+      }).catch(() => {});
+
       setResults((prev) => [
         { id: Date.now(), prompt, style: styleLabel, styleValue: selectedStyle, url: imageUrl, metadata },
         ...prev,

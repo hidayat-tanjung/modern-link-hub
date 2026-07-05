@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AppHeader from "@/components/AppHeader";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   Sparkles,
   Wand2,
@@ -69,14 +71,24 @@ const quickActions = [
   },
 ];
 
-const recentItems = [
-  { name: "Mountain landscape", type: "Generated", date: "2 min ago", icon: Sparkles },
-  { name: "Product photo edit", type: "Edited", date: "15 min ago", icon: Wand2 },
-  { name: "Profile picture", type: "BG Removed", date: "1 hour ago", icon: Eraser },
-  { name: "Banner design", type: "Studio Edit", date: "3 hours ago", icon: ImageIcon },
-];
+function timeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds <= 0) return "just now";
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default function Dashboard() {
+  const recentGenerations = useQuery(api.generations.recent);
+  const dashboardStats = useQuery(api.generations.stats);
+
+  const isLoading = recentGenerations === undefined || dashboardStats === undefined;
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -149,30 +161,43 @@ export default function Dashboard() {
                 <h2 className="text-lg font-semibold">Recent Activity</h2>
               </div>
               <Card className="glass-card">
-                <div className="divide-y divide-border/50">
-                  {recentItems.map((item, i) => {
-                    const Icon = item.icon;
-                    return (
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-muted-foreground">Loading activity...</p>
+                  </div>
+                ) : recentGenerations && recentGenerations.length > 0 ? (
+                  <div className="divide-y divide-border/50">
+                    {recentGenerations.map((item) => (
                       <div
-                        key={i}
+                        key={item._id}
                         className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer"
                       >
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Icon className="w-4 h-4 text-primary" />
+                          <Sparkles className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
+                          <p className="text-sm font-medium truncate">{item.prompt}</p>
                           <p className="text-xs text-muted-foreground">
-                            {item.type} · {item.date}
+                            {item.style} · {timeAgo(item._creationTime)}
                           </p>
                         </div>
                         <Badge variant="secondary" className="text-xs shrink-0">
-                          {item.type}
+                          Generated
                         </Badge>
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <Sparkles className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">No generations yet</p>
+                    <Link to="/generate">
+                      <Button variant="link" size="sm" className="gap-1 mt-1 text-xs">
+                        Create your first image <ArrowRight className="w-3 h-3" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </Card>
             </motion.div>
 
@@ -191,10 +216,10 @@ export default function Dashboard() {
                 </div>
                 <Card className="glass-card p-5 space-y-4">
                   {[
-                    { label: "Generations Used", value: "12", icon: Zap },
-                    { label: "Images Edited", value: "5", icon: Wand2 },
-                    { label: "Storage Used", value: "24 MB", icon: Upload },
-                  ].map((stat, i) => {
+                    { label: "Today's Generations", value: isLoading ? "..." : String(dashboardStats?.todayGenerations ?? 0), icon: Zap },
+                    { label: "Total Generations", value: isLoading ? "..." : String(dashboardStats?.totalGenerations ?? 0), icon: Wand2 },
+                    { label: "Storage Used", value: isLoading ? "..." : (dashboardStats?.storageEstimate ?? "0 KB"), icon: Upload },
+                  ].map((stat: { label: string; value: string; icon: any }, i: number) => {
                     const Icon = stat.icon;
                     return (
                       <div key={i} className="flex items-center justify-between">
