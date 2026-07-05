@@ -14,6 +14,8 @@ import {
   Moon,
   LogIn,
   User,
+  HelpCircle,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +26,11 @@ const navLinks = [
   { to: "/tools", label: "Tools", icon: Palette },
   { to: "/studio", label: "Studio", icon: ImageIcon },
   { to: "/models", label: "Models", icon: Cuboid },
+];
+
+const secondaryLinks = [
+  { to: "/promo", label: "Promo", icon: Tag },
+  { to: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
 export default function AppHeader() {
@@ -75,6 +82,34 @@ export default function AppHeader() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
+                        className="absolute inset-0 rounded-md bg-primary/10 -z-10"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                  </Button>
+                </Link>
+              );
+            })}
+            <div className="w-px h-6 bg-border/50 mx-1" />
+            {secondaryLinks.map((link) => {
+              const isActive = location.pathname === link.to;
+              const Icon = link.icon;
+              return (
+                <Link key={link.to} to={link.to}>
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    size="sm"
+                    className={`relative gap-2 ${
+                      isActive
+                        ? "bg-primary/10 text-primary hover:bg-primary/15"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {link.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-indicator-2"
                         className="absolute inset-0 rounded-md bg-primary/10 -z-10"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
@@ -136,7 +171,7 @@ export default function AppHeader() {
             className="md:hidden border-t border-border/50 overflow-hidden"
           >
             <nav className="px-4 py-3 space-y-1">
-              {navLinks.map((link) => {
+              {[...navLinks, ...secondaryLinks].map((link) => {
                 const isActive = location.pathname === link.to;
                 const Icon = link.icon;
                 return (
