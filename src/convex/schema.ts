@@ -49,7 +49,29 @@ const schema = defineSchema(
         description: v.string(),
         stockCategories: v.array(v.string()),
       }),
-    }).index("by_user", ["userId"]).index("by_user_created", ["userId", "_creationTime"])
+    }).index("by_user", ["userId"]).index("by_user_created", ["userId", "_creationTime"]),
+
+    paymentMethods: defineTable({
+      name: v.string(),
+      type: v.union(v.literal("bank"), v.literal("ewallet"), v.literal("paypal")),
+      provider: v.string(),
+      accountNumber: v.optional(v.string()),
+      accountName: v.string(),
+      logo: v.optional(v.string()),
+      instructions: v.optional(v.string()),
+      isActive: v.boolean(),
+    }),
+
+    payments: defineTable({
+      userId: v.optional(v.id("users")),
+      paymentMethodId: v.id("paymentMethods"),
+      amount: v.number(),
+      currency: v.string(),
+      description: v.string(),
+      status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed"), v.literal("cancelled")),
+      proofUrl: v.optional(v.string()),
+      notes: v.optional(v.string()),
+    }).index("by_user", ["userId"]).index("by_status", ["status"])
   },
   {
     schemaValidation: false,
