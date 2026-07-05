@@ -2,8 +2,12 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+const QUOTA_LIMIT = 5;
+const RESET_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
 /**
- * Record a new image generation.
+ * Record a new image generation and consume one unit of quota.
+ * Returns { success, remaining, resetAt }.
  */
 export const record = mutation({
   args: {
@@ -19,7 +23,47 @@ export const record = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    return await ctx.db.insert("generations", {
+
+    // Server-side quota enforcement
+    let remaining = Infinity;
+    let resetAt = 0;
+
+    if (userId) {
+      const user = await ctx.db.get(userId);
+      const isAdmin = user?.role === "admin";
+
+      if (!isAdmin) {
+        const now = Date.now();
+        const existing = await ctx.db
+          .query("userQuotas")
+          .withIndex("by_user", (q) => q.eq("userId", userId))
+          .unique();
+
+        if (existing) {
+          if (now >= existing.resetAt) {
+            // Reset window
+            await ctx.db.patch(existing._id, { count: 1, resetAt: now + RESET_MS });
+            remaining = QUOTA_LIMIT - 1;
+            resetAt = now + RESET_MS;
+          } else if (existing.count >= QUOTA_LIMIT) {
+            // Quota exhausted
+            return { success: false, remaining: 0, resetAt: existing.resetAt };
+          } else {
+            // Consume one
+            await ctx.db.patch(existing._id, { count: existing.count + 1 });
+            remaining = QUOTA_LIMIT - (existing.count + 1);
+            resetAt = existing.resetAt;
+          }
+        } else {
+          // First time: create quota record
+          await ctx.db.insert("userQuotas", { userId, count: 1, resetAt: now + RESET_MS });
+          remaining = QUOTA_LIMIT - 1;
+          resetAt = now + RESET_MS;
+        }
+      }
+    }
+
+    const docId = await ctx.db.insert("generations", {
       userId: userId ?? undefined,
       prompt: args.prompt,
       style: args.style,
@@ -27,6 +71,8 @@ export const record = mutation({
       imageUrl: args.imageUrl,
       metadata: args.metadata,
     });
+
+    return { success: true, remaining, resetAt, docId };
   },
 });
 

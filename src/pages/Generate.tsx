@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
@@ -131,50 +131,13 @@ const styleKeywords: Record<string, string> = {
   watercolor: "watercolor painting, soft colors, artistic",
 };
 
-// ── Quota system: localStorage with 3-day reset ────────────────────
-const QUOTA_KEY = "pixelforge_quota";
+// ── Constants ─────────────────────────────────────────────────────
 const QUOTA_LIMIT = 5;
-const RESET_MS = 3 * 24 * 60 * 60 * 1000; // 3 days in ms
-
-interface QuotaData {
-  count: number;
-  resetAt: number;
-}
-function getQuota(): QuotaData {
-  try {
-    const raw = localStorage.getItem(QUOTA_KEY);
-    if (!raw) return { count: 0, resetAt: Date.now() + RESET_MS };
-    const data: QuotaData = JSON.parse(raw);
-    if (Date.now() >= data.resetAt) {
-      return { count: 0, resetAt: Date.now() + RESET_MS };
-    }
-    return data;
-  } catch {
-    return { count: 0, resetAt: Date.now() + RESET_MS };
-  }
-}
-
-function consumeQuota(): boolean {
-  const quota = getQuota();
-  if (quota.count >= QUOTA_LIMIT) return false;
-  quota.count += 1;
-  localStorage.setItem(QUOTA_KEY, JSON.stringify(quota));
-  return true;
-}
-
-function getRemainingQuota(): number {
-  const quota = getQuota();
-  return Math.max(0, QUOTA_LIMIT - quota.count);
-}
-
-function getQuotaResetTime(): number {
-  const quota = getQuota();
-  return Math.max(0, quota.resetAt - Date.now());
-}
 
 export default function Generate() {
   const { user } = useAuth();
   const recordGeneration = useMutation(api.generations.record);
+  const quotaStatus = useQuery(api.quotas.status);
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("photorealistic");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -193,34 +156,18 @@ export default function Generate() {
     }[]
   >([]);
 
-  const isAdmin = user?.role === "admin";
-  const [remaining, setRemaining] = useState(() => (isAdmin ? Infinity : getRemainingQuota()));
-  const [resetIn, setResetIn] = useState(() => getQuotaResetTime());
-
-  // Refresh quota display on mount and every minute
-  const refreshQuota = () => {
-    if (isAdmin) return;
-    setRemaining(getRemainingQuota());
-    setResetIn(getQuotaResetTime());
-  };
-
-  useEffect(() => {
-    refreshQuota();
-    const iv = setInterval(refreshQuota, 60000);
-    return () => clearInterval(iv);
-  }, []);
+  const isAdmin = user?.role === "admin" || quotaStatus?.isAdmin;
+  const remaining = quotaStatus?.remaining ?? 0;
+  const resetIn = quotaStatus?.resetAt ? Math.max(0, quotaStatus.resetAt - Date.now()) : 0;
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
     // Quota enforcement (skip for admin)
-    if (!isAdmin) {
-      const quota = getQuota();
-      if (quota.count >= QUOTA_LIMIT) {
-        const hoursLeft = Math.ceil((quota.resetAt - Date.now()) / (1000 * 60 * 60));
-        toast.error(`Quota habis! Reset dalam ~${hoursLeft} jam. Admin bisa generate tanpa batas.`);
-        return;
-      }
+    if (!isAdmin && remaining <= 0) {
+      const hoursLeft = resetIn > 0 ? Math.ceil(resetIn / (1000 * 60 * 60)) : 72;
+      toast.error(`Quota habis! Reset dalam ~${hoursLeft} jam. Admin bisa generate tanpa batas.`);
+      return;
     }
 
     setIsGenerating(true);
@@ -241,15 +188,9 @@ export default function Generate() {
         img.src = imageUrl;
       });
 
-      // Success — NOW consume quota (after image loads)
-      if (!isAdmin) {
-        consumeQuota();
-        refreshQuota();
-      }
-
       const metadata = generateMetadata(prompt, selectedStyle);
       
-      // Persist to Convex (fire-and-forget)
+      // Persist to Convex and consume quota server-side (fire-and-forget)
       recordGeneration({
         prompt,
         style: styleLabel,

@@ -32,6 +32,12 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
+    userQuotas: defineTable({
+      userId: v.id("users"),
+      count: v.number(),
+      resetAt: v.number(),
+    }).index("by_user", ["userId"]),
+
     generations: defineTable({
       userId: v.optional(v.id("users")),
       prompt: v.string(),
