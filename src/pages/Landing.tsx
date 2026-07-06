@@ -25,7 +25,6 @@ import {
   Film,
   Star,
   Rocket,
-  Heart,
   Lightbulb,
 } from "lucide-react";
 import { WaveDivider } from "@/components/WaveDivider";
@@ -729,19 +728,13 @@ export default function Landing() {
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-border/50 py-8 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-studio-1 to-studio-3 flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
-            <span className="font-semibold text-sm">PixelForge</span>
-          </div>
           <div className="flex items-center gap-6">
             <Link to="/faq" className="text-xs text-muted-foreground hover:text-foreground transition-colors">FAQ</Link>
             <Link to="/generate" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Generate</Link>
             <Link to="/tools" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Tools</Link>
           </div>
           <p className="text-xs text-muted-foreground">
-            Built with <Heart className="w-3 h-3 inline text-red-500" /> — Powered by cutting-edge AI
+            Powered by izumy
           </p>
         </div>
       </footer>
