@@ -71,7 +71,16 @@ const schema = defineSchema(
       status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed"), v.literal("cancelled")),
       proofUrl: v.optional(v.string()),
       notes: v.optional(v.string()),
-    }).index("by_user", ["userId"]).index("by_status", ["status"])
+    }).index("by_user", ["userId"]).index("by_status", ["status"]),
+
+    notifications: defineTable({
+      userId: v.id("users"),
+      type: v.union(v.literal("payment_completed"), v.literal("payment_failed"), v.literal("payment_cancelled"), v.literal("info")),
+      title: v.string(),
+      message: v.string(),
+      link: v.optional(v.string()),
+      read: v.boolean(),
+    }).index("by_user", ["userId"]).index("by_user_read", ["userId", "read"]),
   },
   {
     schemaValidation: false,

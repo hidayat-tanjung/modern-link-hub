@@ -17,9 +17,12 @@ import {
   Wand2,
   Shield,
   CreditCard,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +39,108 @@ const secondaryLinks = [
 ];
 
 const adminLink = { to: "/admin", label: "Admin", icon: Shield };
+
+function NotificationBell() {
+  const unreadNotifications = useQuery(api.notifications.unread);
+  const markAllRead = useMutation(api.notifications.markAllRead);
+  const markRead = useMutation(api.notifications.markRead);
+  const [open, setOpen] = useState(false);
+
+  const unreadCount = unreadNotifications?.length ?? 0;
+
+  return (
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(!open)}
+        className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-secondary relative"
+      >
+        <Bell className="w-3.5 h-3.5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[8px] font-bold flex items-center justify-center shadow-lg">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </Button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 mt-2 w-80 sm:w-96 bg-popover border border-border/50 rounded-xl shadow-2xl shadow-black/20 overflow-hidden z-50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+              <span className="text-sm font-semibold">Notifications</span>
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => { markAllRead(); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              {unreadNotifications && unreadNotifications.length > 0 ? (
+                unreadNotifications.map((notif: any) => (
+                  <motion.div
+                    key={notif._id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer border-b border-border/10 last:border-0 ${
+                      notif.type === "payment_completed"
+                        ? "border-l-2 border-l-green-500"
+                        : notif.type === "payment_failed"
+                        ? "border-l-2 border-l-red-500"
+                        : notif.type === "payment_cancelled"
+                        ? "border-l-2 border-l-slate-500"
+                        : "border-l-2 border-l-primary"
+                    }`}
+                    onClick={() => {
+                      markRead({ notificationId: notif._id });
+                      if (notif.link) window.location.href = notif.link;
+                      setOpen(false);
+                    }}
+                  >
+                    <p className="text-sm font-medium">{notif.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                      {notif.message}
+                    </p>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="px-4 py-8 text-center">
+                  <Bell className="w-6 h-6 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-xs text-muted-foreground">No new notifications</p>
+                </div>
+              )}
+            </div>
+            <Link
+              to="/payment"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2.5 text-xs text-center text-primary hover:bg-accent/50 transition-colors border-t border-border/30"
+            >
+              View payment history
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Backdrop to close dropdown */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
 
 export default function AppHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -133,6 +238,9 @@ export default function AppHeader() {
             </div>
 
             <div className="w-px h-5 bg-border/40 mx-0.5 hidden md:block" />
+
+            {/* Notification Bell */}
+            {isAuthenticated && <NotificationBell />}
 
             <Button
               variant="ghost"

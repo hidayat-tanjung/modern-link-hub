@@ -1,6 +1,14 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { createNotification } from "./notifications";
+import { api } from "./_generated/api";
+
+// Simple number formatting that works in all Convex runtimes
+function formatAmount(amount: number): string {
+  const s = String(amount);
+  return "Rp" + s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
 // ── Payment Methods (Admin CRUD) ──────────────────────────────────
 
@@ -159,18 +167,57 @@ export const listAllPayments = query({
   },
 });
 
-/** Update payment status (admin only). */
+/** Update payment status (admin only) — also creates a notification for the user. */
 export const updateStatus = mutation({
   args: {
     paymentId: v.id("payments"),
     status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed"), v.literal("cancelled")),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-    const user = await ctx.db.get(userId);
-    if (user?.role !== "admin") throw new Error("Not authorized");
+    const adminId = await getAuthUserId(ctx);
+    if (!adminId) throw new Error("Not authenticated");
+    const admin = await ctx.db.get(adminId);
+    if (admin?.role !== "admin") throw new Error("Not authorized");
+
+    // Update payment status
     await ctx.db.patch(args.paymentId, { status: args.status });
+
+    // Fetch payment details for the notification
+    const payment = await ctx.db.get(args.paymentId);
+    if (payment?.userId) {
+      const method = payment.paymentMethodId ? await ctx.db.get(payment.paymentMethodId) : null;
+      const amountFormatted = formatAmount(payment.amount);
+
+      const notificationType =
+        args.status === "completed" ? "payment_completed" :
+        args.status === "failed" ? "payment_failed" :
+        args.status === "cancelled" ? "payment_cancelled" :
+        "info";
+
+      const title =
+        args.status === "completed" ? "Payment Approved! 🎉" :
+        args.status === "failed" ? "Payment Rejected" :
+        "Payment Cancelled";
+
+      const message =
+        args.status === "completed"
+          ? `Your payment of ${amountFormatted} for "${payment.description}" has been approved.`
+          : args.status === "failed"
+          ? `Your payment of ${amountFormatted} for "${payment.description}" has been rejected. Please contact support.`
+          : `Your payment of ${amountFormatted} for "${payment.description}" has been cancelled.`;
+
+      await createNotification(ctx, payment.userId, notificationType, title, message, "/payment");
+
+      // Also attempt to send email notification (fire-and-forget)
+      ctx.scheduler.runAfter(0, api.email.sendPaymentEmail as any, {
+        userId: payment.userId,
+        type: notificationType,
+        amount: payment.amount,
+        currency: payment.currency ?? "IDR",
+        description: payment.description,
+      });
+    }
+
     return { success: true };
   },
 });
