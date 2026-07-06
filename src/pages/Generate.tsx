@@ -211,7 +211,7 @@ export default function Generate() {
 
   const handleDownload = (url: string, filename: string) => {
     const link = document.createElement("a");
-    link.download = `pixelforge-${filename.toLowerCase().replace(/\s+/g, "-")}.jpg`;
+    link.download = `izumy-${filename.toLowerCase().replace(/\s+/g, "-")}.jpg`;
     link.href = url;
     link.click();
   };

@@ -610,12 +610,12 @@ export default function Animate() {
   const handleDownload = () => {
     if (videoUrl) {
       const a = document.createElement("a");
-      a.download = `pixelforge-${selectedAnim}.webm`;
+      a.download = `izumy-${selectedAnim}.webm`;
       a.href = videoUrl;
       a.click();
     } else if (previewUrl) {
       const a = document.createElement("a");
-      a.download = `pixelforge-${selectedAnim}.png`;
+      a.download = `izumy-${selectedAnim}.png`;
       a.href = previewUrl;
       a.click();
     }

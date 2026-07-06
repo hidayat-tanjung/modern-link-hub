@@ -221,7 +221,7 @@ export default function Dashboard() {
           >
             <h1 className="text-3xl sm:text-4xl font-bold mb-2">
               Welcome back to{" "}
-              <span className="text-gradient">PixelForge</span>
+              <span className="text-gradient">izumy create</span>
             </h1>
             <p className="text-muted-foreground text-lg">
               All features are <span className="text-green-500 font-semibold">free & unlimited</span>. What would you like to create today?

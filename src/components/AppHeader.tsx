@@ -165,8 +165,8 @@ export default function AppHeader() {
                 </div>
               </div>
               <span className="font-bold text-lg tracking-tight">
-                <span className="text-gradient">Pixel</span>
-                <span className="text-foreground/80">Forge</span>
+                <span className="text-gradient">izumy</span>
+                <span className="text-foreground/80"> create</span>
               </span>
             </Link>
 

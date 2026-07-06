@@ -190,7 +190,7 @@ const steps = [
 ];
 
 const testimonials = [
-  { quote: "PixelForge completely changed my workflow. I can create stock images in minutes instead of hours.", author: "Sarah Chen", role: "Digital Artist" },
+  { quote: "izumy create completely changed my workflow. I can create stock images in minutes instead of hours.", author: "Sarah Chen", role: "Digital Artist" },
   { quote: "The animated icon feature is incredible. Perfect for my UI/UX projects.", author: "Marcus Johnson", role: "UI Designer" },
   { quote: "Free and unlimited AI generation? It's almost too good to be true. Absolutely love it.", author: "Priya Patel", role: "Content Creator" },
 ];
@@ -441,7 +441,7 @@ export default function Landing() {
               <span className="text-gradient">create & edit</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              From AI-powered generation to professional editing tools — PixelForge has everything
+              From AI-powered generation to professional editing tools — izumy create has everything
               you need to bring your creative vision to life.
             </p>
           </motion.div>
@@ -675,7 +675,7 @@ export default function Landing() {
               <span className="text-gradient">create something amazing</span>?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Join thousands of creators using PixelForge to generate, edit, and transform their images.
+              Join thousands of creators using izumy create to generate, edit, and transform their images.
               No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

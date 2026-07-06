@@ -58,8 +58,8 @@ function RouteLoading() {
 
         <div className="text-center">
           <h2 className="text-xl font-bold tracking-tight">
-            <span className="text-gradient">Pixel</span>
-            <span className="text-foreground/80">Forge</span>
+            <span className="text-gradient">izumy</span>
+            <span className="text-foreground/80"> create</span>
           </h2>
           <p className="text-xs text-muted-foreground mt-1">Loading your creative studio...</p>
         </div>
