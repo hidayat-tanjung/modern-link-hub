@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -240,7 +241,11 @@ export default function AppHeader() {
             <div className="w-px h-5 bg-border/40 mx-0.5 hidden md:block" />
 
             {/* Notification Bell */}
-            {isAuthenticated && <NotificationBell />}
+            {isAuthenticated && (
+              <ErrorBoundary>
+                <NotificationBell />
+              </ErrorBoundary>
+            )}
 
             <Button
               variant="ghost"
