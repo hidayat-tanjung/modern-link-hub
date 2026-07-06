@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -216,19 +216,76 @@ function WatermarkTool() {
   const [image, setImage] = useState<string | null>(null);
   const [watermarkText, setWatermarkText] = useState("© PixelForge");
   const [opacity, setOpacity] = useState([50]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const watermarkCanvasRef = useRef<HTMLCanvasElement>(null);
+  const watermarkImgRef = useRef<HTMLImageElement>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => setImage(ev.target?.result as string);
+      reader.onload = (ev) => {
+        setImage(ev.target?.result as string);
+        setPreviewUrl(null);
+      };
       reader.readAsDataURL(file);
     }
   };
 
+  const renderWatermark = useCallback(() => {
+    const canvas = watermarkCanvasRef.current;
+    const img = watermarkImgRef.current;
+    if (!canvas || !img) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    // Draw original image
+    ctx.drawImage(img, 0, 0);
+
+    // Draw watermark text repeated across the image
+    ctx.save();
+    ctx.globalAlpha = opacity[0] / 100;
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.font = `bold ${Math.max(24, canvas.width * 0.04)}px sans-serif`;
+    ctx.textAlign = "center";
+
+    // Tiled watermark
+    const spacing = Math.max(150, canvas.width * 0.25);
+    for (let x = 0; x < canvas.width; x += spacing) {
+      for (let y = 0; y < canvas.height; y += spacing) {
+        ctx.save();
+        ctx.translate(x + spacing / 2, y + spacing / 2);
+        ctx.rotate(-Math.PI / 6);
+        ctx.fillText(watermarkText, 0, 0);
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+
+    setPreviewUrl(canvas.toDataURL("image/png"));
+  }, [watermarkText, opacity]);
+
+  const handleDownloadWatermark = () => {
+    if (previewUrl) {
+      const a = document.createElement("a");
+      a.download = "pixelforge-watermarked.png";
+      a.href = previewUrl;
+      a.click();
+    }
+  };
+
+  useEffect(() => {
+    if (image && watermarkImgRef.current?.complete) renderWatermark();
+  }, [watermarkText, opacity, renderWatermark, image]);
+
   return (
     <div>
+      <canvas ref={watermarkCanvasRef} className="hidden" />
       <ToolHeader icon={Paintbrush} title="Watermark" desc="Add custom watermarks to protect your images" gradient="from-violet-500 to-purple-500" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       {!image ? (
@@ -239,18 +296,13 @@ function WatermarkTool() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="relative rounded-xl overflow-hidden max-h-[400px] flex items-center justify-center bg-canvas-grid">
-            <div className="relative">
+          <div className="rounded-xl overflow-hidden max-h-[400px] flex items-center justify-center bg-canvas-grid">
+            <img ref={watermarkImgRef} src={image} alt="Original" className="max-h-[350px] object-contain hidden" onLoad={renderWatermark} />
+            {previewUrl ? (
+              <img src={previewUrl} alt="Watermarked preview" className="max-h-[350px] object-contain" />
+            ) : (
               <img src={image} alt="Original" className="max-h-[350px] object-contain" />
-              <div
-                className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                style={{ opacity: opacity[0] / 100 }}
-              >
-                <span className="text-white text-2xl font-bold drop-shadow-lg rotate-[-30deg] select-none">
-                  {watermarkText}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
           <div className="space-y-3">
             <div>
@@ -265,10 +317,10 @@ function WatermarkTool() {
               <Slider value={opacity} onValueChange={setOpacity} max={100} step={1} />
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setImage(null)} className="gap-2">
+              <Button variant="outline" onClick={() => { setImage(null); setPreviewUrl(null); }} className="gap-2">
                 <X className="w-4 h-4" /> Reset
               </Button>
-              <Button variant="secondary" className="gap-2 ml-auto">
+              <Button variant="secondary" className="gap-2 ml-auto" onClick={handleDownloadWatermark} disabled={!previewUrl}>
                 <Download className="w-4 h-4" /> Download
               </Button>
             </div>
@@ -282,19 +334,80 @@ function WatermarkTool() {
 function SmartCropTool() {
   const [image, setImage] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("free");
+  const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cropCanvasRef = useRef<HTMLCanvasElement>(null);
+  const cropImgRef = useRef<HTMLImageElement>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => setImage(ev.target?.result as string);
+      reader.onload = (ev) => {
+        setImage(ev.target?.result as string);
+        setCroppedUrl(null);
+      };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleCrop = useCallback(() => {
+    const canvas = cropCanvasRef.current;
+    const img = cropImgRef.current;
+    if (!canvas || !img) return;
+
+    setIsCropping(true);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+
+    let cropW = w;
+    let cropH = h;
+
+    if (aspectRatio !== "free") {
+      const [ratioW, ratioH] = aspectRatio.split(":").map(Number);
+      const targetRatio = ratioW / ratioH;
+      const imageRatio = w / h;
+
+      if (imageRatio > targetRatio) {
+        cropW = h * targetRatio;
+        cropH = h;
+      } else {
+        cropW = w;
+        cropH = w / targetRatio;
+      }
+    }
+
+    const sx = (w - cropW) / 2;
+    const sy = (h - cropH) / 2;
+
+    canvas.width = cropW;
+    canvas.height = cropH;
+    ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+
+    setCroppedUrl(canvas.toDataURL("image/png"));
+    setIsCropping(false);
+  }, [aspectRatio]);
+
+  const handleDownloadCrop = () => {
+    if (croppedUrl) {
+      const a = document.createElement("a");
+      a.download = "pixelforge-cropped.png";
+      a.href = croppedUrl;
+      a.click();
+    }
+  };
+
+  useEffect(() => {
+    if (image && cropImgRef.current?.complete) handleCrop();
+  }, [aspectRatio, handleCrop, image]);
+
   return (
     <div>
+      <canvas ref={cropCanvasRef} className="hidden" />
       <ToolHeader icon={Crop} title="Smart Crop" desc="Crop images with intelligent aspect ratio presets" gradient="from-green-500 to-emerald-500" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       {!image ? (
@@ -305,8 +418,19 @@ function SmartCropTool() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden max-h-[400px] flex items-center justify-center bg-canvas-grid">
-            <img src={image} alt="To crop" className="max-h-[350px] object-contain" />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="rounded-xl overflow-hidden max-h-[350px] flex items-center justify-center bg-canvas-grid">
+              <img ref={cropImgRef} src={image} alt="Original" className="max-h-[300px] object-contain" onLoad={handleCrop} />
+            </div>
+            <div className="rounded-xl overflow-hidden max-h-[350px] flex items-center justify-center bg-canvas-grid">
+              {croppedUrl ? (
+                <img src={croppedUrl} alt="Cropped" className="max-h-[300px] object-contain" />
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+                  {isCropping ? "Cropping..." : "Preview"}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <Label className="text-xs mb-2 block">Aspect Ratio</Label>
@@ -324,13 +448,13 @@ function SmartCropTool() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setImage(null)} className="gap-2">
+            <Button variant="outline" onClick={() => { setImage(null); setCroppedUrl(null); }} className="gap-2">
               <X className="w-4 h-4" /> Reset
             </Button>
-            <Button variant="secondary" className="gap-2 ml-auto">
-              <Crop className="w-4 h-4" /> Apply Crop
+            <Button variant="secondary" className="gap-2 ml-auto" onClick={handleCrop} disabled={isCropping}>
+              <Crop className="w-4 h-4" /> {isCropping ? "Cropping..." : "Apply Crop"}
             </Button>
-            <Button variant="secondary" className="gap-2">
+            <Button variant="secondary" className="gap-2" onClick={handleDownloadCrop} disabled={!croppedUrl}>
               <Download className="w-4 h-4" /> Download
             </Button>
           </div>
@@ -344,19 +468,71 @@ function ConvertTool() {
   const [image, setImage] = useState<string | null>(null);
   const [format, setFormat] = useState("webp");
   const [quality, setQuality] = useState([80]);
+  const [convertedUrl, setConvertedUrl] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<{ original: string; converted: string } | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const convertCanvasRef = useRef<HTMLCanvasElement>(null);
+  const convertImgRef = useRef<HTMLImageElement>(null);
+  const originalFileRef = useRef<File | null>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      originalFileRef.current = file;
       const reader = new FileReader();
-      reader.onload = (ev) => setImage(ev.target?.result as string);
+      reader.onload = (ev) => {
+        setImage(ev.target?.result as string);
+        setConvertedUrl(null);
+        setFileSize(null);
+        setFileSize({ original: (file.size / 1024).toFixed(1), converted: "" });
+      };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleConvert = useCallback(() => {
+    const canvas = convertCanvasRef.current;
+    const img = convertImgRef.current;
+    if (!canvas || !img) return;
+
+    setIsConverting(true);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    ctx.drawImage(img, 0, 0);
+
+    const mimeType = format === "jpg" ? "image/jpeg" :
+      format === "png" ? "image/png" :
+      format === "webp" ? "image/webp" :
+      format === "avif" ? "image/avif" :
+      format === "gif" ? "image/gif" :
+      format === "bmp" ? "image/bmp" : "image/png";
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setConvertedUrl(url);
+        setFileSize((prev) => prev ? { ...prev, converted: (blob.size / 1024).toFixed(1) } : null);
+      }
+      setIsConverting(false);
+    }, mimeType, quality[0] / 100);
+  }, [format, quality]);
+
+  const handleDownloadConvert = () => {
+    if (convertedUrl) {
+      const a = document.createElement("a");
+      a.download = `pixelforge-converted.${format}`;
+      a.href = convertedUrl;
+      a.click();
     }
   };
 
   return (
     <div>
+      <canvas ref={convertCanvasRef} className="hidden" />
       <ToolHeader icon={Shrink} title="Convert & Compress" desc="Convert between formats and optimize file size" gradient="from-amber-500 to-yellow-500" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       {!image ? (
@@ -367,8 +543,19 @@ function ConvertTool() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden max-h-[300px] flex items-center justify-center bg-canvas-grid">
-            <img src={image} alt="To convert" className="max-h-[280px] object-contain" />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="rounded-xl overflow-hidden max-h-[250px] flex items-center justify-center bg-canvas-grid">
+              <img src={image} alt="Original" className="max-h-[230px] object-contain" />
+            </div>
+            <div className="rounded-xl overflow-hidden max-h-[250px] flex items-center justify-center bg-canvas-grid">
+              {convertedUrl ? (
+                <img src={convertedUrl} alt="Converted" className="max-h-[230px] object-contain" />
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+                  {isConverting ? "Converting..." : "Click Convert"}
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -392,15 +579,24 @@ function ConvertTool() {
               <Slider value={quality} onValueChange={setQuality} max={100} step={1} className="mt-2" />
             </div>
           </div>
+          {fileSize && (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span>Original: {fileSize.original} KB</span>
+              {fileSize.converted && (
+                <><span className="text-border/50">→</span><span className="text-green-500">Converted: {fileSize.converted} KB</span></>
+              )}
+            </div>
+          )}
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setImage(null)} className="gap-2">
+            <Button variant="outline" onClick={() => { setImage(null); setConvertedUrl(null); setFileSize(null); }} className="gap-2">
               <X className="w-4 h-4" /> Reset
             </Button>
-            <Button variant="secondary" className="gap-2 ml-auto">
-              <Shrink className="w-4 h-4" /> Convert
+            <img ref={convertImgRef} src={image} alt="" className="hidden" onLoad={handleConvert} />
+            <Button variant="secondary" className="gap-2 ml-auto" onClick={handleConvert} disabled={isConverting}>
+              <Shrink className="w-4 h-4" /> {isConverting ? "Converting..." : "Convert"}
             </Button>
-            <Button variant="secondary" className="gap-2">
-              <Download className="w-4 h-4" /> Download
+            <Button variant="secondary" className="gap-2" onClick={handleDownloadConvert} disabled={!convertedUrl}>
+              <Download className="w-4 h-4" /> .{format}
             </Button>
           </div>
         </div>
@@ -497,7 +693,10 @@ function TraceSBGTool() {
 
 function ColorToolsTool() {
   const [image, setImage] = useState<string | null>(null);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const processCanvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [brightness, setBrightness] = useState([0]);
   const [contrast, setContrast] = useState([0]);
   const [saturation, setSaturation] = useState([0]);
@@ -506,13 +705,51 @@ function ColorToolsTool() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => setImage(ev.target?.result as string);
+      reader.onload = (ev) => {
+        setImage(ev.target?.result as string);
+        setResultUrl(null);
+      };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const applyFilters = useCallback(() => {
+    const canvas = processCanvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    ctx.filter = [
+      `brightness(${1 + brightness[0] / 100})`,
+      `contrast(${1 + contrast[0] / 100})`,
+      `saturate(${1 + saturation[0] / 100})`,
+    ].join(" ");
+
+    ctx.drawImage(img, 0, 0);
+    setResultUrl(canvas.toDataURL("image/png"));
+  }, [brightness, contrast, saturation]);
+
+  useEffect(() => {
+    if (image && imgRef.current?.complete) applyFilters();
+  }, [brightness, contrast, saturation, applyFilters, image]);
+
+  const handleDownloadAdjust = () => {
+    if (resultUrl) {
+      const a = document.createElement("a");
+      a.download = "pixelforge-color-adjusted.png";
+      a.href = resultUrl;
+      a.click();
     }
   };
 
   return (
     <div>
+      <canvas ref={processCanvasRef} className="hidden" />
       <ToolHeader icon={Palette} title="Color Tools" desc="Adjust brightness, contrast, saturation and more" gradient="from-teal-500 to-cyan-500" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       {!image ? (
@@ -524,7 +761,7 @@ function ColorToolsTool() {
       ) : (
         <div className="space-y-4">
           <div className="rounded-xl overflow-hidden max-h-[300px] flex items-center justify-center bg-canvas-grid">
-            <img src={image} alt="Adjust" className="max-h-[280px] object-contain" />
+            <img ref={imgRef} src={image} alt="Adjust" className="max-h-[280px] object-contain" onLoad={applyFilters} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
@@ -546,9 +783,14 @@ function ColorToolsTool() {
               <Slider value={saturation} onValueChange={setSaturation} min={-100} max={100} step={1} />
             </div>
           </div>
+          {resultUrl && (
+            <div className="rounded-xl overflow-hidden max-h-[200px] flex items-center justify-center bg-canvas-grid border border-primary/20">
+              <img src={resultUrl} alt="Result" className="max-h-[180px] object-contain" />
+            </div>
+          )}
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setImage(null)} className="gap-2"><X className="w-4 h-4" /> Reset</Button>
-            <Button variant="secondary" className="gap-2 ml-auto"><Download className="w-4 h-4" /> Download</Button>
+            <Button variant="outline" onClick={() => { setImage(null); setResultUrl(null); }} className="gap-2"><X className="w-4 h-4" /> Reset</Button>
+            <Button variant="secondary" className="gap-2 ml-auto" onClick={handleDownloadAdjust} disabled={!resultUrl}><Download className="w-4 h-4" /> Download</Button>
           </div>
         </div>
       )}
