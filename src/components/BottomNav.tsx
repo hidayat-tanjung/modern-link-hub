@@ -8,15 +8,16 @@ import {
   Cuboid,
   Film,
   Home,
+  Images,
 } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/generate", label: "Generate", icon: Sparkles },
   { to: "/animate", label: "Animate", icon: Film },
+  { to: "/gallery", label: "Gallery", icon: Images },
   { to: "/tools", label: "Tools", icon: Wand2 },
   { to: "/studio", label: "Studio", icon: ImageIcon },
-  { to: "/models", label: "Models", icon: Cuboid },
 ];
 
 export default function BottomNav() {

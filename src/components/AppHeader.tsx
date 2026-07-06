@@ -17,6 +17,7 @@ import {
   Wand2,
   ImageIcon,
   Cuboid,
+  Images,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/generate", label: "Generate", icon: Sparkles },
   { to: "/animate", label: "Animate", icon: Film },
+  { to: "/gallery", label: "Gallery", icon: Images },
   { to: "/tools", label: "Tools", icon: Wand2 },
   { to: "/studio", label: "Studio", icon: ImageIcon },
   { to: "/models", label: "Models", icon: Cuboid },

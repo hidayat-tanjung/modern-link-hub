@@ -23,6 +23,7 @@ const Tools = lazy(() => import("./pages/Tools.tsx"));
 const Studio = lazy(() => import("./pages/Studio.tsx"));
 const Models = lazy(() => import("./pages/Models.tsx"));
 const Animate = lazy(() => import("./pages/Animate.tsx"));
+const Gallery = lazy(() => import("./pages/Gallery.tsx"));
 const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const Promo = lazy(() => import("./pages/Promo.tsx"));
 const Payment = lazy(() => import("./pages/Payment.tsx"));
@@ -86,6 +87,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/studio" element={<Studio />} />
               <Route path="/models" element={<Models />} />
               <Route path="/animate" element={<Animate />} />
+              <Route path="/gallery" element={<Gallery />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/faq" element={<FAQ />} />
