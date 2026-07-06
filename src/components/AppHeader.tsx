@@ -6,9 +6,7 @@ import {
   Sparkles,
   Sun,
   Moon,
-  LogIn,
   HelpCircle,
-  CreditCard,
   Bell,
   Menu,
   X,
@@ -36,7 +34,6 @@ const navLinks = [
 ];
 
 const secondaryLinks = [
-  { to: "/payment", label: "Payment", icon: CreditCard },
   { to: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
@@ -118,13 +115,7 @@ function NotificationBell() {
                 </div>
               )}
             </div>
-            <Link
-              to="/payment"
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-xs text-center text-primary hover:bg-accent/50 transition-colors border-t border-border/30"
-            >
-              View payment history
-            </Link>
+
           </motion.div>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
         </>
@@ -239,20 +230,13 @@ export default function AppHeader() {
                 {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
               </Button>
 
-              {isAuthenticated ? (
+              {isAuthenticated && (
                 <Link to="/dashboard">
                   <Avatar className="h-7 w-7 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/50 transition-all">
                     <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
                       {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                </Link>
-              ) : (
-                <Link to="/auth">
-                  <Button variant="default" size="sm" className="gap-1.5 rounded-full px-3 py-1.5 text-xs h-auto">
-                    <LogIn className="w-3 h-3" />
-                    <span className="hidden sm:inline">Sign In</span>
-                  </Button>
                 </Link>
               )}
 
