@@ -121,21 +121,24 @@ const samplePrompts = [
 ];
 
 const styleKeywords: Record<string, string> = {
-  photorealistic: "photorealistic, highly detailed, 8k",
-  anime: "anime style, clear sharp lines, detailed character design, clean linework, vibrant colors, studio ghibli",
-  "oil-painting": "oil painting style, masterpiece, detailed brushwork",
-  "3d-render": "3d render, octane render, cinematic lighting, highly detailed, sharp focus",
-  "pixel-art": "pixel art, retro game style, 16-bit",
-  watercolor: "watercolor painting, soft colors, artistic",
+  photorealistic: "photorealistic, ultra sharp focus, crisp details, 8K, razor sharp, hyperrealistic, pristine quality, highly detailed texture, clear, professional photography, sharp edges, no blur",
+  anime: "anime style, crystal clear lines, sharp linework, crisp edges, clean vector quality, highly detailed, vibrant colors, professional illustration, no blur, pristine",
+  "oil-painting": "oil painting masterpiece, crisp brush strokes, highly detailed texture, sharp focus, intricate details, fine art masterpiece, clear composition, no blur, sharp",
+  "3d-render": "3D render, octane render, sharp focus, crisp details, 8K resolution, cinematic quality, highly detailed texture, perfect lighting, pristine, no blur, clean edges",
+  "pixel-art": "pixel art, crisp pixel edges, sharp lines, clean pixel art, high quality pixel graphics, retro game style, 16-bit, crystal clear, no blur",
+  watercolor: "watercolor painting, sharp detailed brushwork, crisp edges, high quality watercolor, artistic, clear composition, detailed textures, professional, no blur",
 };
+
+// Quality boosters automatically prepended to every prompt
+const qualityBoosters = "Masterpiece, best quality, sharp focus, crisp details, high resolution, ultra HD, pristine, clear, ";
 
 export default function Generate() {
   const recordGeneration = useMutation(api.generations.record);
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("photorealistic");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [negativePrompt, setNegativePrompt] = useState(false);
-  const [negativeText, setNegativeText] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState(true);
+  const [negativeText, setNegativeText] = useState("blurry, low quality, pixelated, distorted, ugly, deformed, out of focus, noise, grainy, smudged, messy");
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [results, setResults] = useState<
@@ -158,9 +161,12 @@ export default function Generate() {
       const seed = Math.floor(Math.random() * 100000);
       const styleKeyword = styleKeywords[selectedStyle] || "";
       const negPart = negativeText.trim() ? `, avoid: ${negativeText}` : "";
-      const fullPrompt = `${prompt}, ${styleKeyword}${negPart}`;
+      // Auto-boost quality by prepending quality terms
+      const qualityPrompt = `${qualityBoosters}${prompt}`;
+      const fullPrompt = `${qualityPrompt}, ${styleKeyword}${negPart}`;
 
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+      // Higher resolution for sharper results
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1408&height=1408&model=flux&nologo=true&seed=${seed}`;
 
       await new Promise<void>((resolve, reject) => {
         const img = new Image();
@@ -212,8 +218,8 @@ export default function Generate() {
 
   const handleRegenerate = async (result: (typeof results)[0]) => {
     const newSeed = Math.floor(Math.random() * 100000);
-    const styleKeyword = styleKeywords[result.styleValue] || "";
-    const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${result.prompt}, ${styleKeyword}`)}?width=1024&height=1024&model=flux&nologo=true&seed=${newSeed}`;
+    const styleKeyword = styleKeywords[result.styleValue] || "";      const qualityPrompt = `${qualityBoosters}${result.prompt}`;
+      const newUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(`${qualityPrompt}, ${styleKeyword}`)}?width=1408&height=1408&model=flux&nologo=true&seed=${newSeed}`;
     setResults((prev) => prev.map((r) => (r.id === result.id ? { ...r, url: "" } : r)));
     try {
       await new Promise<void>((resolve, reject) => {
@@ -402,6 +408,7 @@ export default function Generate() {
                                 alt={result.prompt}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                                 loading="lazy"
+                                style={{ imageRendering: 'auto' }}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
@@ -444,7 +451,7 @@ export default function Generate() {
                             {/* Resolution badge */}
                             <div className="absolute top-3 left-3">
                               <Badge variant="secondary" className="text-[10px] bg-black/50 backdrop-blur-sm border-white/10 text-white/90">
-                                1024×1024 · Stock Ready
+                                1408×1408 · Ultra HD
                               </Badge>
                             </div>
                           </div>
