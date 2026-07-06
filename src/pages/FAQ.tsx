@@ -11,14 +11,11 @@ import {
   ChevronDown,
   Search,
   Sparkles,
-  MessageCircle,
-  Mail,
   ImageIcon,
   Palette,
   Cuboid,
   HelpCircle,
   Users,
-  LifeBuoy,
 } from "lucide-react";
 
 const faqCategories = [
@@ -414,28 +411,7 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* Still have questions */}
-      <section className="pb-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <Card className="glass-card p-10 border-primary/20 bg-gradient-to-br from-studio-1/5 via-studio-4/5 to-transparent">
-            <LifeBuoy className="w-12 h-12 text-primary/60 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Masih punya pertanyaan?</h2>
-            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Tim kami siap membantu! Hubungi kami melalui email atau chat, dan kami akan merespon dalam waktu 1x24 jam.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button variant="default" className="gap-2">
-                <Mail className="w-4 h-4" />
-                support@pixelforge.ai
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <MessageCircle className="w-4 h-4" />
-                Live Chat
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </section>
+
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8">

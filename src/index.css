@@ -90,41 +90,41 @@
   --studio-5: oklch(0.50 0.20 230);
 }
 
-/* Deep Ocean Blue — Dark mode (richer, deeper) */
+/* Deep Ocean Blue — Dark mode (even richer, deeper navy) */
 .dark {
-  --background: oklch(0.08 0.04 250);        /* Very deep navy */
+  --background: oklch(0.06 0.035 255);        /* Ultra deep navy */
   --foreground: oklch(0.95 0.008 245);
-  --card: oklch(0.11 0.045 248);             /* Deep card background */
+  --card: oklch(0.09 0.04 252);               /* Deeper card */
   --card-foreground: oklch(0.95 0.008 245);
-  --popover: oklch(0.11 0.045 248);
+  --popover: oklch(0.09 0.04 252);
   --popover-foreground: oklch(0.95 0.008 245);
-  --primary: oklch(0.62 0.20 250);           /* Brighter ocean blue */
+  --primary: oklch(0.65 0.22 255);            /* Brighter ocean blue */
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.15 0.045 248);
+  --secondary: oklch(0.12 0.04 252);
   --secondary-foreground: oklch(0.90 0.01 245);
-  --muted: oklch(0.14 0.035 248);
-  --muted-foreground: oklch(0.55 0.04 248);
-  --accent: oklch(0.18 0.06 250);
+  --muted: oklch(0.11 0.03 252);
+  --muted-foreground: oklch(0.50 0.04 252);
+  --accent: oklch(0.15 0.06 255);
   --accent-foreground: oklch(0.95 0.008 245);
   --destructive: oklch(0.65 0.2 22);
-  --border: oklch(0.18 0.05 248);            /* Subtle blue border */
-  --input: oklch(0.16 0.04 248);
-  --ring: oklch(0.62 0.20 250);
-  --chart-1: oklch(0.55 0.22 250);
+  --border: oklch(0.15 0.05 252);            /* Deep blue border */
+  --input: oklch(0.13 0.04 252);
+  --ring: oklch(0.65 0.22 255);
+  --chart-1: oklch(0.55 0.22 255);
   --chart-2: oklch(0.60 0.15 220);
   --chart-3: oklch(0.50 0.18 260);
   --chart-4: oklch(0.65 0.12 200);
   --chart-5: oklch(0.55 0.22 230);
-  --sidebar: oklch(0.09 0.04 248);
+  --sidebar: oklch(0.07 0.035 252);
   --sidebar-foreground: oklch(0.95 0.008 245);
-  --sidebar-primary: oklch(0.62 0.20 250);
+  --sidebar-primary: oklch(0.65 0.22 255);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.15 0.05 248);
+  --sidebar-accent: oklch(0.12 0.05 252);
   --sidebar-accent-foreground: oklch(0.95 0.008 245);
-  --sidebar-border: oklch(0.18 0.05 248);
-  --sidebar-ring: oklch(0.62 0.20 250);
+  --sidebar-border: oklch(0.15 0.05 252);
+  --sidebar-ring: oklch(0.65 0.22 255);
   
-  --studio-1: oklch(0.62 0.20 250);         /* Bright ocean */
+  --studio-1: oklch(0.65 0.22 255);         /* Bright ocean */
   --studio-2: oklch(0.60 0.15 220);         /* Sky blue */
   --studio-3: oklch(0.50 0.18 260);         /* Indigo */
   --studio-4: oklch(0.65 0.12 200);         /* Teal */
@@ -157,11 +157,11 @@
 }
 
 @utility glow {
-  box-shadow: 0 0 30px -5px oklch(0.50 0.19 245 / 0.35);
+  box-shadow: 0 0 30px -5px oklch(0.55 0.22 255 / 0.4);
 }
 
 @utility glow-lg {
-  box-shadow: 0 0 60px -10px oklch(0.50 0.19 245 / 0.3);
+  box-shadow: 0 0 60px -10px oklch(0.55 0.22 255 / 0.35);
 }
 
 /* Canvas grid background for editor */
@@ -170,6 +170,12 @@
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+/* Loading bar animation */
+@keyframes loading-bar {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(200%); }
 }
 
 /* Smooth scrollbar for the whole app */

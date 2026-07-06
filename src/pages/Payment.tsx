@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import AppHeader from "@/components/AppHeader";
 import { WaveDivider } from "@/components/WaveDivider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
@@ -56,7 +57,7 @@ function formatDate(timestamp: number): string {
   }).format(new Date(timestamp));
 }
 
-export default function Payment() {
+function PaymentContent() {
   const methods = useQuery(api.payments.listMethods);
   const myPayments = useQuery(api.payments.myPayments);
   const submitPayment = useMutation(api.payments.submitPayment);
@@ -542,7 +543,6 @@ export default function Payment() {
         </div>
       </main>
 
-      {/* WaveDivider */}
       <WaveDivider />
 
       {/* Success Dialog */}
@@ -600,5 +600,13 @@ export default function Payment() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function Payment() {
+  return (
+    <ErrorBoundary>
+      <PaymentContent />
+    </ErrorBoundary>
   );
 }
