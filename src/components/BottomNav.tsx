@@ -7,11 +7,11 @@ import {
   ImageIcon,
   Cuboid,
   Film,
+  Home,
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Home", icon: Home },
   { to: "/generate", label: "Generate", icon: Sparkles },
   { to: "/animate", label: "Animate", icon: Film },
   { to: "/tools", label: "Tools", icon: Wand2 },
@@ -21,9 +21,9 @@ const navItems = [
 
 export default function BottomNav() {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const isLanding = location.pathname === "/";
 
-  if (!isAuthenticated) return null;
+  if (isLanding) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">

@@ -80,12 +80,13 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/generate" element={<ProtectedRoute><Generate /></ProtectedRoute>} />
-              <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
-              <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
-              <Route path="/models" element={<ProtectedRoute><Models /></ProtectedRoute>} />
-              <Route path="/animate" element={<ProtectedRoute><Animate /></ProtectedRoute>} />
+
+              <Route path="/generate" element={<Generate />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/studio" element={<Studio />} />
+              <Route path="/models" element={<Models />} />
+              <Route path="/animate" element={<Animate />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/promo" element={<Promo />} />

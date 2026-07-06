@@ -298,8 +298,8 @@ export default function AppHeader() {
         )}
       </header>
 
-      {/* Spacer for mobile (bottom nav) - only show when authenticated */}
-      {isAuthenticated && <div className="md:hidden h-16" />}
+      {/* Spacer for mobile bottom nav */}
+      <div className="md:hidden h-16" />
     </>
   );
 }
