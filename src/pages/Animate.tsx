@@ -79,6 +79,14 @@ const canvasSizes = [
   { label: "HD (1920×1080)", value: 1080, desc: "1080p video" },
 ];
 
+// ── Render Quality ───────────────────────────────────────────────
+
+const qualityOptions = [
+  { label: "Normal", value: 1, desc: "1x - standard" },
+  { label: "High", value: 2, desc: "2x - crisp" },
+  { label: "Ultra", value: 3, desc: "3x - max detail" },
+];
+
 // ── Effects ──────────────────────────────────────────────────────
 
 type EffectType = "none" | "particles" | "trail" | "glow" | "sparkle" | "rainbow";
@@ -201,9 +209,10 @@ function drawShape(ctx: CanvasRenderingContext2D, shape: ShapeType, size: number
     case "triangle":
       ctx.moveTo(0, -s); ctx.lineTo(-s, s); ctx.lineTo(s, s); ctx.closePath(); break;
     case "star":
-      for (let i = 0; i < 5; i++) {
-        const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-        i === 0 ? ctx.moveTo(Math.cos(a) * s, Math.sin(a) * s) : ctx.lineTo(Math.cos(a) * s, Math.sin(a) * s);
+      for (let i = 0; i < 10; i++) {
+        const angle = (i * Math.PI) / 5 - Math.PI / 2;
+        const r = i % 2 === 0 ? s : s * 0.4;
+        i === 0 ? ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r) : ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
       }
       ctx.closePath(); break;
     case "heart":
@@ -263,6 +272,7 @@ export default function Animate() {
   const [canvasSize, setCanvasSize] = useState(512);
   const [duration, setDuration] = useState([2.5]);
   const [fps, setFps] = useState([30]);
+  const [renderScale, setRenderScale] = useState(2);
   const [selectedEffect, setSelectedEffect] = useState<EffectType>("particles");
   const [multiLayer, setMultiLayer] = useState(false);
   const [particleCount, setParticleCount] = useState([30]);
@@ -288,9 +298,19 @@ export default function Animate() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const size = canvas.width;
+    const scale = renderScale;
+    const size = canvasSize;
+    const physicalSize = canvas.width;
     progressRef.current = progress;
-    ctx.clearRect(0, 0, size, size);
+
+    // Reset transform and clear at physical resolution
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, physicalSize, physicalSize);
+
+    // Scale for HiDPI / high-quality rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
     // Subtle grid
     ctx.strokeStyle = "rgba(255,255,255,0.02)";
@@ -466,7 +486,7 @@ export default function Animate() {
       ctx.fillText(words, size / 2, size - 20);
       ctx.restore();
     }
-  }, [selectedAnim, selectedShape, selectedPalette, prompt, selectedEffect, multiLayer, particleCount]);
+  }, [selectedAnim, selectedShape, selectedPalette, prompt, selectedEffect, multiLayer, particleCount, canvasSize, renderScale]);
 
   // ── Animation Loop ───────────────────────────────────────────
 
@@ -489,16 +509,18 @@ export default function Animate() {
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [isPlaying, renderFrame, fps, duration]);
 
-  // Initial render
+  // Initial render - with renderScale for crisp output
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    const scale = renderScale;
+    // Buffer at higher resolution, CSS w-full handles display size
+    canvas.width = canvasSize * scale;
+    canvas.height = canvasSize * scale;
     particlesRef.current = [];
     trailRef.current = [];
     if (!isPlaying) renderFrame(0);
-  }, [canvasSize, renderFrame, isPlaying]);
+  }, [canvasSize, renderFrame, isPlaying, renderScale]);
 
   // ── Generate Preview ─────────────────────────────────────────
 
@@ -750,8 +772,8 @@ export default function Animate() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="col-span-2">
                     <label className="text-[10px] text-muted-foreground block mb-1">Size</label>
                     <Select value={String(canvasSize)} onValueChange={(v) => setCanvasSize(Number(v))}>
                       <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
@@ -761,6 +783,17 @@ export default function Animate() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[10px] text-muted-foreground block mb-1">Quality</label>
+                    <div className="flex gap-1">
+                      {qualityOptions.map((q) => (
+                        <Badge key={q.value} variant={renderScale === q.value ? "default" : "outline"}
+                          className="cursor-pointer text-[10px] px-1.5 py-0.5 flex-1 text-center"
+                          onClick={() => setRenderScale(q.value)}
+                        >{q.label}</Badge>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1">Duration</label>
