@@ -24,6 +24,7 @@ import {
   Layers,
   Zap,
   Upload,
+  Film
 } from "lucide-react";
 
 const quickActions = [
@@ -63,6 +64,13 @@ const quickActions = [
     gradient: "from-studio-5 to-studio-1",
   },
   {
+    icon: Film,
+    label: "Animate",
+    desc: "Create animated icons",
+    to: "/animate",
+    gradient: "from-violet-500 to-purple-500",
+  },
+  {
     icon: Palette,
     label: "All Tools",
     desc: "Full tool suite",
@@ -91,7 +99,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <main className="pt-24 pb-16">
+      <main className="pt-20 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Welcome */}
           <motion.div
@@ -104,7 +112,7 @@ export default function Dashboard() {
               <span className="text-gradient">PixelForge</span>
             </h1>
             <p className="text-muted-foreground text-lg">
-              What would you like to create today?
+              All features are <span className="text-green-500 font-semibold">free & unlimited</span>. What would you like to create today?
             </p>
           </motion.div>
 

@@ -22,8 +22,7 @@ import {
   Shield,
   Layers,
   Paintbrush,
-  Clock,
-  Crown,
+  Film,
 } from "lucide-react";
 import { WaveDivider } from "@/components/WaveDivider";
 
@@ -59,6 +58,12 @@ const features = [
     gradient: "from-studio-5 to-studio-1",
   },
   {
+    icon: Film,
+    title: "Animated Icons & MP4",
+    description: "Create stunning animated icons and motion graphics. Export as WebM/MP4 for Shutterstock, Adobe Stock, and social media.",
+    gradient: "from-violet-500 to-purple-500",
+  },
+  {
     icon: Shrink,
     title: "Convert & Compress",
     description: "Convert between formats (PNG, JPG, WebP, AVIF) and compress without quality loss. Optimize for web and print.",
@@ -73,6 +78,7 @@ const toolsList = [
   { icon: Crop, label: "Smart Crop", desc: "AI-powered cropping" },
   { icon: Shrink, label: "Convert & Compress", desc: "Format & size optimization" },
   { icon: Wand2, label: "Serious Edit", desc: "Advanced editing" },
+  { icon: Film, label: "Animate", desc: "Animated icons & MP4" },
   { icon: Layers, label: "Trace SBG", desc: "Shape background trace" },
   { icon: Palette, label: "Color Tools", desc: "Color adjustment suite" },
 ];
@@ -169,7 +175,7 @@ export default function Landing() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto"
           >
-            {["AI Generation", "Remove BG", "Image Editor", "Smart Crop", "Watermark", "Convert", "Studio", "Models"].map(
+            {[              "AI Generation", "Animated Icons", "Remove BG", "Image Editor", "Smart Crop", "Watermark", "Convert", "Studio"].map(
               (tag) => (
                 <Badge
                   key={tag}
@@ -330,28 +336,29 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Quota Info Section */}
+      {/* Free & Unlimited Section */}
       <section className="py-20 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <Card className="glass-card p-8 border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
-                  <Clock className="w-3 h-3 mr-1" /> Free Tier
+                <Badge variant="outline" className="mb-4 border-green-500/30 text-green-500 bg-green-500/5">
+                  <Sparkles className="w-3 h-3 mr-1" /> Free & Unlimited
                 </Badge>
-                <h2 className="text-2xl font-bold mb-4">Generate for Free</h2>
+                <h2 className="text-2xl font-bold mb-4">All Features, Totally Free</h2>
                 <p className="text-muted-foreground mb-6">
-                  Get started with our free tier. Generate images with quota that resets every 3 days.
+                  No quotas, no limits, no credit card. Every feature is completely free and unlimited for all users.
                 </p>
                 <div className="space-y-3">
                   {[
-                    "Free tier with 3-day reset quota",
-                    "All styles available (Anime, Photorealistic, etc.)",
-                    "Auto description & categories included",
+                    "Unlimited AI image generation",
+                    "Unlimited animated icons & MP4 export",
+                    "All 6 style presets available (Anime, Photorealistic, etc.)",
+                    "Auto description, categories & stock tags included",
                     "Commercial use ready (Shutterstock, Adobe Stock)",
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="w-4 h-4 text-primary shrink-0" />
+                      <Check className="w-4 h-4 text-green-500 shrink-0" />
                       <span>{item}</span>
                     </div>
                   ))}
@@ -360,14 +367,14 @@ export default function Landing() {
               <div>
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="glass-card p-4 text-center">
-                    <Clock className="w-6 h-6 mx-auto mb-2 text-primary" />
-                    <p className="font-semibold text-sm">3-Day Reset</p>
-                    <p className="text-xs text-muted-foreground mt-1">Quota refreshes automatically</p>
+                    <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <p className="font-semibold text-sm">Unlimited</p>
+                    <p className="text-xs text-muted-foreground mt-1">No quotas, no limits</p>
                   </Card>
                   <Card className="glass-card p-4 text-center">
-                    <Crown className="w-6 h-6 mx-auto mb-2 text-amber-500" />
-                    <p className="font-semibold text-sm">Admin Unlimited</p>
-                    <p className="text-xs text-muted-foreground mt-1">Full access, no limits</p>
+                    <Film className="w-6 h-6 mx-auto mb-2 text-purple-500" />
+                    <p className="font-semibold text-sm">Animated Icons</p>
+                    <p className="text-xs text-muted-foreground mt-1">MP4/WebM export</p>
                   </Card>
                   <Card className="glass-card p-4 text-center">
                     <Shield className="w-6 h-6 mx-auto mb-2 text-green-500" />
@@ -375,7 +382,7 @@ export default function Landing() {
                     <p className="text-xs text-muted-foreground mt-1">Ready for stock platforms</p>
                   </Card>
                   <Card className="glass-card p-4 text-center">
-                    <Sparkles className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                    <ImageIcon className="w-6 h-6 mx-auto mb-2 text-blue-500" />
                     <p className="font-semibold text-sm">AI Quality</p>
                     <p className="text-xs text-muted-foreground mt-1">1024x1024 Flux model</p>
                   </Card>
@@ -422,10 +429,10 @@ export default function Landing() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-muted-foreground">
-              {["No credit card", "Free tier included", "3-day quota reset", "Admin unlimited"].map(
+              {["No credit card", "Free & unlimited", "Commercial use OK", "8K+ ready"].map(
                 (item) => (
                   <span key={item} className="flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-primary" />
+                    <Check className="w-4 h-4 text-green-500" />
                     {item}
                   </span>
                 ),

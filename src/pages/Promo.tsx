@@ -8,14 +8,13 @@ import {
   Sparkles,
   Check,
   Zap,
-  Crown,
   Shield,
   Unlock,
   Layers,
   Palette,
   ImageIcon,
   ArrowRight,
-  Clock,
+  Film,
   Users,
 } from "lucide-react";
 
@@ -51,29 +50,29 @@ const features = [
     gradient: "from-emerald-500 to-cyan-500",
   },
   {
-    icon: Users,
-    title: "Admin Full Access",
-    description: "Admin accounts get unlimited generations with no quota restrictions. Contact admin for access.",
-    gradient: "from-amber-500 to-orange-500",
+    icon: Film,
+    title: "Animated Icons & MP4",
+    description: "Create stunning animated icons and motion graphics with WebM/MP4 export. Ready for Shutterstock and Adobe Stock.",
+    gradient: "from-violet-500 to-purple-500",
   },
 ];
 
 const faqItems = [
   {
-    q: "Bagaimana sistem quota bekerja?",
-    a: "Pengguna free mendapat quota yang reset setiap 3 hari. Setelah quota habis, kamu perlu menunggu reset berikutnya untuk generate lagi. Admin mendapat akses penuh tanpa batas.",
+    q: "Apakah PixelForge benar-benar gratis?",
+    a: "Ya! Semua fitur PixelForge sepenuhnya gratis dan tanpa batas. Tidak ada quota, tidak ada limit, dan tidak perlu kartu kredit. Kamu bisa generate gambar, buat animasi, dan menggunakan semua tools tanpa batasan.",
   },
   {
     q: "Apakah gambar bisa di-upload ke Shutterstock/Adobe Stock?",
-    a: "Ya! Semua gambar yang dihasilkan menggunakan AI models kami berkualitas tinggi (1024x1024+) dan siap untuk komersial use. Kamu bisa upload ke Shutterstock, Adobe Stock, dan platform stock lainnya.",
+    a: "Ya! Semua gambar (1024x1024+) dan animasi yang dihasilkan siap untuk komersial use. Setiap hasil dilengkapi dengan deskripsi, kategori, dan tag otomatis yang siap untuk Shutterstock, Adobe Stock, dan platform stock lainnya.",
   },
   {
-    q: "Bagaimana cara mendapatkan akses admin?",
-    a: "Hubungi administrator untuk mendapatkan akses admin. Admin mendapat quota unlimited dan bisa generate tanpa batasan.",
+    q: "Apa itu fitur Animated Icons?",
+    a: "Fitur Animated Icons memungkinkan kamu membuat ikon animasi dan motion graphics dalam format WebM/MP4. Kamu bisa memilih style animasi (bounce, rotate, pulse, float, dll), shape, warna, dan durasi. Hasilnya siap di-upload ke stock platforms atau digunakan di website dan aplikasi.",
   },
   {
     q: "Apakah ada deskripsi dan kategori otomatis?",
-    a: "Ya! Setiap gambar yang di-generate akan otomatis mendapat deskripsi dan kategori yang sesuai, siap untuk di-upload ke stock platforms.",
+    a: "Ya! Setiap gambar dan animasi yang di-generate akan otomatis mendapat deskripsi, kategori, dan tag yang sesuai — siap untuk di-upload ke stock platforms seperti Shutterstock dan Adobe Stock.",
   },
 ];
 
@@ -90,23 +89,23 @@ export default function Promo() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
-              <Unlock className="w-3 h-3 mr-1" /> Free Tier Available
+            <Badge variant="outline" className="mb-4 border-green-500/30 text-green-500 bg-green-500/5">
+              <Unlock className="w-3 h-3 mr-1" /> Free & Unlimited
             </Badge>
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
               AI Image Generation{" "}
-              <span className="text-gradient">Free</span>
+              <span className="text-gradient">Free Forever</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Generate gambar AI berkualitas tinggi dengan quota gratis.
-              Reset tiap 3 hari. Admin mendapat akses unlimited.
+              Generate gambar AI dan buat animasi ikon tanpa batas.
+              Semua fitur gratis — tidak ada quota, tidak ada limit.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {[
-                { icon: Clock, text: "3-Day Reset" },
+                { icon: Unlock, text: "No Limits" },
                 { icon: Shield, text: "Commercial Use" },
                 { icon: Sparkles, text: "Auto Description" },
-                { icon: Crown, text: "Admin Unlimited" },
+                { icon: Film, text: "Animated Icons" },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -124,10 +123,10 @@ export default function Promo() {
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/models">
+              <Link to="/animate">
                 <Button variant="outline" size="lg" className="gap-2 text-base px-10 h-12">
-                  <Crown className="w-5 h-5" />
-                  Browse All Models
+                  <Film className="w-5 h-5" />
+                  Create Animated Icons
                 </Button>
               </Link>
             </div>
@@ -152,7 +151,7 @@ export default function Promo() {
               <span className="text-gradient">Secara Gratis</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Semua fitur di bawah ini tersedia untuk semua pengguna free dengan quota 3-hari.
+              Semua fitur di bawah ini tersedia untuk semua pengguna — gratis dan tanpa batas.
             </p>
           </motion.div>
 

@@ -48,7 +48,7 @@
   --color-studio-5: var(--studio-5);
 }
 
-/* Ocean Blue Theme — Light mode */
+/* Deep Ocean Blue Theme — Enhanced Dark Mode */
 :root {
   --radius: 0.75rem;
   --background: oklch(0.97 0.005 245);
@@ -57,7 +57,7 @@
   --card-foreground: oklch(0.15 0.02 250);
   --popover: oklch(0.99 0.003 245);
   --popover-foreground: oklch(0.15 0.02 250);
-  --primary: oklch(0.50 0.17 245);
+  --primary: oklch(0.52 0.19 245);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.95 0.01 245);
   --secondary-foreground: oklch(0.20 0.02 250);
@@ -68,67 +68,67 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.90 0.01 245);
   --input: oklch(0.90 0.01 245);
-  --ring: oklch(0.50 0.17 245);
-  --chart-1: oklch(0.50 0.17 245);
+  --ring: oklch(0.52 0.19 245);
+  --chart-1: oklch(0.52 0.19 245);
   --chart-2: oklch(0.55 0.15 220);
   --chart-3: oklch(0.45 0.18 260);
   --chart-4: oklch(0.60 0.12 200);
   --chart-5: oklch(0.50 0.20 230);
   --sidebar: oklch(0.97 0.005 245);
   --sidebar-foreground: oklch(0.15 0.02 250);
-  --sidebar-primary: oklch(0.50 0.17 245);
+  --sidebar-primary: oklch(0.52 0.19 245);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.92 0.02 245);
   --sidebar-accent-foreground: oklch(0.20 0.02 250);
   --sidebar-border: oklch(0.90 0.01 245);
-  --sidebar-ring: oklch(0.50 0.17 245);
+  --sidebar-ring: oklch(0.52 0.19 245);
   
-  --studio-1: oklch(0.50 0.17 245);
+  --studio-1: oklch(0.52 0.19 245);
   --studio-2: oklch(0.55 0.15 220);
   --studio-3: oklch(0.45 0.18 260);
   --studio-4: oklch(0.60 0.12 200);
   --studio-5: oklch(0.50 0.20 230);
 }
 
-/* Ocean Blue Theme — Dark mode */
+/* Deep Ocean Blue — Dark mode (richer, deeper) */
 .dark {
-  --background: oklch(0.12 0.035 245);
+  --background: oklch(0.08 0.04 250);        /* Very deep navy */
   --foreground: oklch(0.95 0.008 245);
-  --card: oklch(0.15 0.04 245);
+  --card: oklch(0.11 0.045 248);             /* Deep card background */
   --card-foreground: oklch(0.95 0.008 245);
-  --popover: oklch(0.15 0.04 245);
+  --popover: oklch(0.11 0.045 248);
   --popover-foreground: oklch(0.95 0.008 245);
-  --primary: oklch(0.60 0.19 245);
+  --primary: oklch(0.62 0.20 250);           /* Brighter ocean blue */
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.20 0.04 245);
+  --secondary: oklch(0.15 0.045 248);
   --secondary-foreground: oklch(0.90 0.01 245);
-  --muted: oklch(0.20 0.03 245);
-  --muted-foreground: oklch(0.60 0.03 245);
-  --accent: oklch(0.25 0.06 245);
+  --muted: oklch(0.14 0.035 248);
+  --muted-foreground: oklch(0.55 0.04 248);
+  --accent: oklch(0.18 0.06 250);
   --accent-foreground: oklch(0.95 0.008 245);
   --destructive: oklch(0.65 0.2 22);
-  --border: oklch(0.25 0.04 245);
-  --input: oklch(0.22 0.04 245);
-  --ring: oklch(0.60 0.19 245);
-  --chart-1: oklch(0.55 0.20 245);
+  --border: oklch(0.18 0.05 248);            /* Subtle blue border */
+  --input: oklch(0.16 0.04 248);
+  --ring: oklch(0.62 0.20 250);
+  --chart-1: oklch(0.55 0.22 250);
   --chart-2: oklch(0.60 0.15 220);
   --chart-3: oklch(0.50 0.18 260);
   --chart-4: oklch(0.65 0.12 200);
   --chart-5: oklch(0.55 0.22 230);
-  --sidebar: oklch(0.13 0.035 245);
+  --sidebar: oklch(0.09 0.04 248);
   --sidebar-foreground: oklch(0.95 0.008 245);
-  --sidebar-primary: oklch(0.60 0.19 245);
+  --sidebar-primary: oklch(0.62 0.20 250);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.05 245);
+  --sidebar-accent: oklch(0.15 0.05 248);
   --sidebar-accent-foreground: oklch(0.95 0.008 245);
-  --sidebar-border: oklch(0.22 0.04 245);
-  --sidebar-ring: oklch(0.60 0.19 245);
+  --sidebar-border: oklch(0.18 0.05 248);
+  --sidebar-ring: oklch(0.62 0.20 250);
   
-  --studio-1: oklch(0.60 0.19 245);
-  --studio-2: oklch(0.60 0.15 220);
-  --studio-3: oklch(0.50 0.18 260);
-  --studio-4: oklch(0.65 0.12 200);
-  --studio-5: oklch(0.55 0.22 230);
+  --studio-1: oklch(0.62 0.20 250);         /* Bright ocean */
+  --studio-2: oklch(0.60 0.15 220);         /* Sky blue */
+  --studio-3: oklch(0.50 0.18 260);         /* Indigo */
+  --studio-4: oklch(0.65 0.12 200);         /* Teal */
+  --studio-5: oklch(0.55 0.22 230);         /* Deep blue */
 }
 
 @layer base {

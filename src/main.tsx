@@ -6,6 +6,7 @@ import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import { StrictMode, useEffect, lazy, Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BottomNav from "./components/BottomNav";
 import { NotificationWatcher } from "./components/NotificationWatcher";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { createRoot } from "react-dom/client";
@@ -21,9 +22,9 @@ const Generate = lazy(() => import("./pages/Generate.tsx"));
 const Tools = lazy(() => import("./pages/Tools.tsx"));
 const Studio = lazy(() => import("./pages/Studio.tsx"));
 const Models = lazy(() => import("./pages/Models.tsx"));
+const Animate = lazy(() => import("./pages/Animate.tsx"));
 const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const Promo = lazy(() => import("./pages/Promo.tsx"));
-const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Payment = lazy(() => import("./pages/Payment.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -74,6 +75,7 @@ createRoot(document.getElementById("root")!).render(
           <ErrorBoundary>
             <NotificationWatcher />
           </ErrorBoundary>
+          <BottomNav />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<Landing />} />
@@ -83,7 +85,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/models" element={<ProtectedRoute><Models /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/animate" element={<ProtectedRoute><Animate /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/promo" element={<Promo />} />

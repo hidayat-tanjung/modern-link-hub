@@ -6,8 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/AppHeader";
-import { useAuth } from "@/hooks/use-auth";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import {
@@ -24,8 +23,7 @@ import {
   Shield,
   FileText,
   Tag,
-  Clock,
-  Crown,
+  Film,
 } from "lucide-react";
 
 // ── Auto-generate metadata from prompt ──────────────────────────────
@@ -131,13 +129,8 @@ const styleKeywords: Record<string, string> = {
   watercolor: "watercolor painting, soft colors, artistic",
 };
 
-// ── Constants ─────────────────────────────────────────────────────
-const QUOTA_LIMIT = 5;
-
 export default function Generate() {
-  const { user } = useAuth();
   const recordGeneration = useMutation(api.generations.record);
-  const quotaStatus = useQuery(api.quotas.status);
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("photorealistic");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -156,20 +149,8 @@ export default function Generate() {
     }[]
   >([]);
 
-  const isAdmin = user?.role === "admin" || quotaStatus?.isAdmin;
-  const remaining = quotaStatus?.remaining ?? 0;
-  const resetIn = quotaStatus?.resetAt ? Math.max(0, quotaStatus.resetAt - Date.now()) : 0;
-
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-
-    // Quota enforcement (skip for admin)
-    if (!isAdmin && remaining <= 0) {
-      const hoursLeft = resetIn > 0 ? Math.ceil(resetIn / (1000 * 60 * 60)) : 72;
-      toast.error(`Quota habis! Reset dalam ~${hoursLeft} jam. Admin bisa generate tanpa batas.`);
-      return;
-    }
-
     setIsGenerating(true);
 
     try {
@@ -261,15 +242,9 @@ export default function Generate() {
               <h1 className="text-3xl font-bold">
                 AI <span className="text-gradient">Image Generation</span>
               </h1>
-              {isAdmin ? (
-                <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-500 border-amber-500/20">
-                  <Crown className="w-3 h-3" /> Admin
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
-                  <Clock className="w-3 h-3" /> {remaining} / {QUOTA_LIMIT} generates · Resets in {Math.ceil(resetIn / (1000 * 60 * 60))}h
-                </Badge>
-              )}
+              <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-500 border-green-500/20">
+                <Film className="w-3 h-3" /> Free & Unlimited
+              </Badge>
             </div>
             <p className="text-muted-foreground">
               Describe what you want to see, and let AI bring it to life.
@@ -319,7 +294,7 @@ export default function Generate() {
 
                 <Button
                   className="w-full gap-2 glow"
-                  disabled={!prompt.trim() || isGenerating || (!isAdmin && remaining <= 0)}
+                  disabled={!prompt.trim() || isGenerating}
                   onClick={handleGenerate}
                 >
                   {isGenerating ? (
