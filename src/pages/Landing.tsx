@@ -1,5 +1,5 @@
-import { motion, useScroll, useTransform, useMotionValue, useSpring, useInView } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring, useInView, useMotionValueEvent } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ function AnimatedCounter({ value }: { value: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const num = parseInt(value.replace(/[^0-9]/g, ""));
+  const [displayText, setDisplayText] = useState("0");
   const motionValue = useMotionValue(0);
   const springValue = useSpring(motionValue, { damping: 30, stiffness: 100 });
   const displayValue = useTransform(springValue, (latest) => {
@@ -45,11 +46,13 @@ function AnimatedCounter({ value }: { value: string }) {
     return hasPlus ? `${Math.floor(latest)}+` : `${Math.floor(latest)}`;
   });
 
+  useMotionValueEvent(displayValue, "change", (latest) => setDisplayText(latest));
+
   useEffect(() => {
     if (isInView) motionValue.set(num);
   }, [isInView, num, motionValue]);
 
-  return <motion.span ref={ref}>{displayValue}</motion.span>;
+  return <span ref={ref}>{displayText}</span>;
 }
 
 // ── Floating Orb ───────────────────────────────────────────────────
