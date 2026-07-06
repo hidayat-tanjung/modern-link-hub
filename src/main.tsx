@@ -7,7 +7,6 @@ import { ConvexReactClient } from "convex/react";
 import { StrictMode, useEffect, lazy, Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { NotificationWatcher } from "./components/NotificationWatcher";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
@@ -71,9 +70,7 @@ createRoot(document.getElementById("root")!).render(
       <ConvexAuthProvider client={convex}>
         <BrowserRouter>
           <RouteSyncer />
-          <ErrorBoundary>
-            <NotificationWatcher />
-          </ErrorBoundary>
+          <NotificationWatcher />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<Landing />} />
