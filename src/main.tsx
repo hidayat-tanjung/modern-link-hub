@@ -22,6 +22,7 @@ const Models = lazy(() => import("./pages/Models.tsx"));
 const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const Promo = lazy(() => import("./pages/Promo.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
+const Payment = lazy(() => import("./pages/Payment.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Simple loading fallback for route transitions
@@ -78,6 +79,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/models" element={<ProtectedRoute><Models /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/promo" element={<Promo />} />
               <Route path="*" element={<NotFound />} />

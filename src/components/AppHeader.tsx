@@ -16,6 +16,7 @@ import {
   Tag,
   Wand2,
   Shield,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -30,6 +31,7 @@ const navLinks = [
 
 const secondaryLinks = [
   { to: "/promo", label: "Promo", icon: Tag },
+  { to: "/payment", label: "Payment", icon: CreditCard },
   { to: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
