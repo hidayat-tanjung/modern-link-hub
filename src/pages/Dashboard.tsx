@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AppHeader from "@/components/AppHeader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -90,12 +91,123 @@ function timeAgo(timestamp: number): string {
   return `${days}d ago`;
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const recentGenerations = useQuery(api.generations.recent);
   const dashboardStats = useQuery(api.generations.stats);
 
   const isLoading = recentGenerations === undefined || dashboardStats === undefined;
 
+  return (
+    <div className="grid lg:grid-cols-3 gap-8">
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="lg:col-span-2"
+      >
+        <div className="flex items-center gap-2 mb-5">
+          <Clock className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">Recent Activity</h2>
+        </div>
+        <Card className="glass-card">
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">Loading activity...</p>
+            </div>
+          ) : recentGenerations && recentGenerations.length > 0 ? (
+            <div className="divide-y divide-border/50">
+              {recentGenerations.map((item: { _id: string; _creationTime: number; prompt: string; style: string }) => (
+                <div
+                  key={item._id}
+                  className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.prompt}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.style} · {timeAgo(item._creationTime)}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs shrink-0">
+                    Generated
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <Sparkles className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No generations yet</p>
+              <Link to="/generate">
+                <Button variant="link" size="sm" className="gap-1 mt-1 text-xs">
+                  Create your first image <ArrowRight className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+          )}
+        </Card>
+      </motion.div>
+
+      {/* Stats & Tips */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="space-y-6"
+      >
+        {/* Daily Stats */}
+        <div>
+          <div className="flex items-center gap-2 mb-5">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Today's Stats</h2>
+          </div>
+          <Card className="glass-card p-5 space-y-4">
+            {[
+              { label: "Today's Generations", value: isLoading ? "..." : String(dashboardStats?.todayGenerations ?? 0), icon: Zap },
+              { label: "Total Generations", value: isLoading ? "..." : String(dashboardStats?.totalGenerations ?? 0), icon: Wand2 },
+              { label: "Storage Used", value: isLoading ? "..." : (dashboardStats?.storageEstimate ?? "0 KB"), icon: Upload },
+            ].map((stat: { label: string; value: string; icon: any }, i: number) => {
+              const Icon = stat.icon;
+              return (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  </div>
+                  <span className="text-sm font-semibold">{stat.value}</span>
+                </div>
+              );
+            })}
+          </Card>
+        </div>
+
+        {/* Quick Tip */}
+        <Card className="glass-card p-5 bg-gradient-to-br from-studio-1/10 via-studio-2/5 to-transparent border-primary/20">
+          <div className="flex items-start gap-3">
+            <Star className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold mb-1">Pro Tip</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Try the Studio editor for advanced layer-based editing with filters,
+                text overlays, and drawing tools.
+              </p>
+              <Link to="/studio">
+                <Button variant="link" size="sm" className="gap-1 p-0 h-auto mt-2 text-xs">
+                  Open Studio <ArrowRight className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -155,112 +267,9 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="lg:col-span-2"
-            >
-              <div className="flex items-center gap-2 mb-5">
-                <Clock className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold">Recent Activity</h2>
-              </div>
-              <Card className="glass-card">
-                {isLoading ? (
-                  <div className="p-8 text-center">
-                    <p className="text-sm text-muted-foreground">Loading activity...</p>
-                  </div>
-                ) : recentGenerations && recentGenerations.length > 0 ? (
-                  <div className="divide-y divide-border/50">
-                    {recentGenerations.map((item: { _id: string; _creationTime: number; prompt: string; style: string }) => (
-                      <div
-                        key={item._id}
-                        className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer"
-                      >
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Sparkles className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.prompt}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.style} · {timeAgo(item._creationTime)}
-                          </p>
-                        </div>
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          Generated
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center">
-                    <Sparkles className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground">No generations yet</p>
-                    <Link to="/generate">
-                      <Button variant="link" size="sm" className="gap-1 mt-1 text-xs">
-                        Create your first image <ArrowRight className="w-3 h-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </Card>
-            </motion.div>
-
-            {/* Stats & Tips */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-6"
-            >
-              {/* Daily Stats */}
-              <div>
-                <div className="flex items-center gap-2 mb-5">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Today's Stats</h2>
-                </div>
-                <Card className="glass-card p-5 space-y-4">
-                  {[
-                    { label: "Today's Generations", value: isLoading ? "..." : String(dashboardStats?.todayGenerations ?? 0), icon: Zap },
-                    { label: "Total Generations", value: isLoading ? "..." : String(dashboardStats?.totalGenerations ?? 0), icon: Wand2 },
-                    { label: "Storage Used", value: isLoading ? "..." : (dashboardStats?.storageEstimate ?? "0 KB"), icon: Upload },
-                  ].map((stat: { label: string; value: string; icon: any }, i: number) => {
-                    const Icon = stat.icon;
-                    return (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">{stat.label}</span>
-                        </div>
-                        <span className="text-sm font-semibold">{stat.value}</span>
-                      </div>
-                    );
-                  })}
-                </Card>
-              </div>
-
-              {/* Quick Tip */}
-              <Card className="glass-card p-5 bg-gradient-to-br from-studio-1/10 via-studio-2/5 to-transparent border-primary/20">
-                <div className="flex items-start gap-3">
-                  <Star className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">Pro Tip</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Try the Studio editor for advanced layer-based editing with filters,
-                      text overlays, and drawing tools.
-                    </p>
-                    <Link to="/studio">
-                      <Button variant="link" size="sm" className="gap-1 p-0 h-auto mt-2 text-xs">
-                        Open Studio <ArrowRight className="w-3 h-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          </div>
+          <ErrorBoundary>
+            <DashboardContent />
+          </ErrorBoundary>
         </div>
       </main>
     </div>
