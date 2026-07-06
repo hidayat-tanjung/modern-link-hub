@@ -88,6 +88,7 @@ const paymentTypeIcons: Record<string, any> = {
 export default function Admin() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("users");
+  const [proofPreviewId, setProofPreviewId] = useState<string | null>(null);
 
   // Users
   const stats = useQuery(api.admin.globalStats);
@@ -502,6 +503,19 @@ export default function Admin() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3 flex-1 min-w-0">
+                            {/* Proof image thumbnail */}
+                            {payment.proofUrl && (
+                              <button
+                                onClick={() => setProofPreviewId(payment._id)}
+                                className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-border/30 hover:border-primary/50 transition-all group"
+                              >
+                                <img
+                                  src={payment.proofUrl}
+                                  alt="Payment proof"
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                />
+                              </button>
+                            )}
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                               payment.status === "completed" ? "bg-green-500/10" :
                               payment.status === "pending" ? "bg-amber-500/10" :
@@ -521,7 +535,7 @@ export default function Admin() {
                                 {payment.userName} · {payment.methodName} ({payment.methodType})
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {timeAgo(payment._creationTime)} · {payment.notes ? `Notes: ${payment.notes}` : ""}
+                                {payment.proofUrl && <span className="text-primary">Proof attached</span>}{" · "}{timeAgo(payment._creationTime)}{" · "}{payment.notes ? `Notes: ${payment.notes}` : ""}
                               </p>
                             </div>
                           </div>
@@ -766,6 +780,24 @@ export default function Admin() {
           </Tabs>
         </div>
       </main>
+
+      {/* Proof Preview Dialog */}
+      <Dialog open={!!proofPreviewId} onOpenChange={(open) => { if (!open) setProofPreviewId(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Payment Proof</DialogTitle>
+          </DialogHeader>
+          {proofPreviewId && allPayments && (
+            <div className="rounded-xl overflow-hidden border border-border/50 bg-accent/10">
+              <img
+                src={(allPayments as any[]).find((p: any) => p._id === proofPreviewId)?.proofUrl}
+                alt="Payment proof screenshot"
+                className="w-full h-auto max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

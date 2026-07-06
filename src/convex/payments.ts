@@ -93,6 +93,18 @@ export const deleteMethod = mutation({
   },
 });
 
+// ── File Upload ───────────────────────────────────────────────────
+
+/** Generate a one-time upload URL for proof-of-payment images. */
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
 // ── Payments ──────────────────────────────────────────────────────
 
 /** Submit a new payment (authenticated user). */
@@ -103,6 +115,7 @@ export const submitPayment = mutation({
     currency: v.string(),
     description: v.string(),
     notes: v.optional(v.string()),
+    proofStorageId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -112,6 +125,13 @@ export const submitPayment = mutation({
     const method = await ctx.db.get(args.paymentMethodId);
     if (!method) throw new Error("Payment method not found");
 
+    // Convert storage ID to URL if provided
+    let proofUrl: string | undefined;
+    if (args.proofStorageId) {
+      const storageId = args.proofStorageId as any;
+      proofUrl = (await ctx.storage.getUrl(storageId)) ?? undefined;
+    }
+
     return await ctx.db.insert("payments", {
       userId,
       paymentMethodId: args.paymentMethodId,
@@ -119,6 +139,7 @@ export const submitPayment = mutation({
       currency: args.currency,
       description: args.description,
       status: "pending",
+      proofUrl,
       notes: args.notes,
     });
   },

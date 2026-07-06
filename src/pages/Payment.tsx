@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,9 @@ import {
   Clock,
   XCircle,
   History,
+  Upload,
+  FileUp,
+  Eye,
 } from "lucide-react";
 
 const paymentTypes = [
@@ -57,6 +60,7 @@ export default function Payment() {
   const methods = useQuery(api.payments.listMethods);
   const myPayments = useQuery(api.payments.myPayments);
   const submitPayment = useMutation(api.payments.submitPayment);
+  const generateUploadUrl = useMutation(api.payments.generateUploadUrl);
 
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
@@ -65,33 +69,85 @@ export default function Payment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [lastPayment, setLastPayment] = useState<any>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isLoading = methods === undefined || myPayments === undefined;
 
   const selectedMethodData = methods?.find((m: any) => m._id === selectedMethod);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file (PNG, JPG, etc.)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 5MB.");
+      return;
+    }
+
+    setProofFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setProofPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setProofFile(null);
+    setProofPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = async () => {
     if (!selectedMethod || !amount || !description) return;
     setIsSubmitting(true);
+
+    let proofStorageId: string | undefined;
+
     try {
+      // Upload proof file first if selected
+      if (proofFile) {
+        setIsUploading(true);
+        const uploadUrl = await generateUploadUrl();
+        const result = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": proofFile.type },
+          body: proofFile,
+        });
+        if (!result.ok) throw new Error("Upload failed");
+        proofStorageId = await result.text();
+        setIsUploading(false);
+      }
+
       const paymentId = await submitPayment({
         paymentMethodId: selectedMethod as any,
         amount: parseInt(amount),
         currency: "IDR",
         description,
         notes: notes || undefined,
+        proofStorageId,
       });
-      setLastPayment({ ...selectedMethodData, paymentId, amount: parseInt(amount), description });
+      setLastPayment({ ...selectedMethodData, paymentId, amount: parseInt(amount), description, proofPreview });
       setSuccessDialogOpen(true);
       setAmount("");
       setDescription("");
       setNotes("");
       setSelectedMethod("");
+      handleRemoveFile();
       toast.success("Payment submitted successfully!");
     } catch (err) {
       toast.error("Failed to submit payment. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
@@ -303,7 +359,76 @@ export default function Payment() {
                 </Card>
               </motion.div>
 
-              {/* Step 3: Description & Submit */}
+              {/* Step 3: Upload Proof of Payment */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="mb-8"
+              >
+                <div className="flex items-center gap-2 mb-5">
+                  <Upload className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-semibold">3. Upload Proof of Payment</h2>
+                </div>
+                <Card className="glass-card p-5">
+                  {proofPreview ? (
+                    <div className="space-y-3">
+                      <div className="relative rounded-xl overflow-hidden border border-border/50 bg-accent/30">
+                        <img
+                          src={proofPreview}
+                          alt="Payment proof"
+                          className="w-full h-40 object-contain"
+                        />
+                        <div className="absolute top-2 right-2 flex gap-1">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="w-7 h-7 bg-background/80 backdrop-blur-sm"
+                            onClick={() => window.open(proofPreview, "_blank")}
+                            title="Preview full size"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="w-7 h-7 bg-background/80 backdrop-blur-sm text-red-500 hover:text-red-500"
+                            onClick={handleRemoveFile}
+                            title="Remove"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {proofFile?.name} ({(proofFile!.size / 1024).toFixed(1)} KB)
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      className="border-2 border-dashed border-border/50 rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-accent/20 transition-all group"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                        <FileUp className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-sm font-medium">Upload Payment Proof</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG, or WEBP — Max 5MB
+                      </p>
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </Card>
+              </motion.div>
+
+              {/* Step 4: Description & Submit */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -312,7 +437,7 @@ export default function Payment() {
               >
                 <div className="flex items-center gap-2 mb-5">
                   <Send className="w-5 h-5 text-primary" />
-                  <h2 className="text-lg font-semibold">3. Payment Details</h2>
+                  <h2 className="text-lg font-semibold">4. Payment Details</h2>
                 </div>
                 <Card className="glass-card p-5">
                   <div className="space-y-4">
@@ -340,10 +465,12 @@ export default function Payment() {
                     </div>
                     <Button
                       onClick={handleSubmit}
-                      disabled={!selectedMethod || !amount || !description || isSubmitting}
+                      disabled={!selectedMethod || !amount || !description || isSubmitting || isUploading}
                       className="w-full gap-2 h-11"
                     >
-                      {isSubmitting ? (
+                      {isUploading ? (
+                        <span className="animate-pulse">Uploading proof...</span>
+                      ) : isSubmitting ? (
                         <span className="animate-pulse">Submitting...</span>
                       ) : (
                         <>
@@ -443,6 +570,17 @@ export default function Payment() {
                   <span className="text-muted-foreground">Method</span>
                   <span>{lastPayment?.name ?? "Selected"}</span>
                 </div>
+                {lastPayment?.proofPreview && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Proof</span>
+                    <button
+                      onClick={() => window.open(lastPayment.proofPreview, "_blank")}
+                      className="text-primary hover:underline text-xs flex items-center gap-1"
+                    >
+                      <Eye className="w-3 h-3" /> View
+                    </button>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Status</span>
                   <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-xs">
